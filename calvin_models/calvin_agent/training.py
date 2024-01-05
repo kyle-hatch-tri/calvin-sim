@@ -41,6 +41,7 @@ def train(cfg: DictConfig) -> None:
     else:
         model = hydra.utils.instantiate(cfg.model)
 
+
     log_rank_0(f"Training with the following config:\n{OmegaConf.to_yaml(cfg)}")
     log_rank_0("Repo commit hash: {}".format(get_git_commit_hash(Path(hydra.utils.to_absolute_path(__file__)))))
     log_rank_0(print_system_env_info())

@@ -144,6 +144,7 @@ def create_tsne(plan_dict, log_dir, epoch):
 
 
 def get_log_dir(log_dir):
+    print("eval_log_dir:", log_dir)
     if log_dir is not None:
         log_dir = Path(log_dir)
         os.makedirs(log_dir, exist_ok=True)

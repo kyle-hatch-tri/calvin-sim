@@ -10,6 +10,7 @@ import json
 import cv2
 from tqdm import tqdm
 import jax_diffusion_model
+import pytorch_diffusion_model
 import diffusion_gc_policy
 
 # This is for using the locally installed repo clone when using slurm
@@ -55,9 +56,15 @@ def make_env(dataset_path):
 
 
 class CustomModel(CalvinBaseModel):
-    def __init__(self):
+    def __init__(self, diffusion_model_framework="jax"):
         # Initialize diffusion model
-        self.diffusion_model = jax_diffusion_model.DiffusionModel()
+
+        if diffusion_model_framework == "jax":
+            self.diffusion_model = jax_diffusion_model.DiffusionModel()
+        elif diffusion_model_framework == "pytorch":
+            self.diffusion_model = pytorch_diffusion_model.PytorchDiffusionModel()
+        else:
+            raise ValueError(f"Unsupported diffusion model framework: \"{diffusion_model_framework}\".")
 
         # Initialize GCBC
         self.gc_policy = diffusion_gc_policy.GCPolicy()
@@ -67,7 +74,18 @@ class CustomModel(CalvinBaseModel):
         #   (2) sequence of image observations as a video
         #   (3) sequence of diffusion model generations also as a video, timed with (2)
         #   (4) sequence of actions as numpy array
-        self.log_dir = "experiments"
+        # self.log_dir = "experiments"
+        # self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-2:])
+        
+
+        if "jax_model" in os.getenv("DIFFUSION_MODEL_CHECKPOINT"):
+            self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-4:-1])
+        else:
+            self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-3:])
+
+
+        print(f"Logging to \"{self.log_dir}\"...")
+        os.makedirs(self.log_dir, exist_ok=True)
         self.episode_counter = None
         self.language_task = None
         self.obs_image_seq = None
@@ -81,6 +99,44 @@ class CustomModel(CalvinBaseModel):
         self.subgoal_max = 20
         self.pbar = None
 
+    def save_info(self, success):
+        episode_log_dir = os.path.join(self.log_dir, "ep" + str(self.episode_counter))
+        if not os.path.exists(episode_log_dir):
+            os.makedirs(episode_log_dir)
+
+        # Log the language task
+        with open(os.path.join(episode_log_dir, "language_task.txt"), "w") as f:
+            f.write(self.language_task + "\n")
+            f.write(f"success: {success}")
+        
+        # Log the observation video
+        size = (200, 200)
+        out = cv2.VideoWriter(os.path.join(episode_log_dir, "trajectory.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+        for i in range(len(self.obs_image_seq)):
+            rgb_img = cv2.cvtColor(self.obs_image_seq[i], cv2.COLOR_RGB2BGR)
+            out.write(rgb_img)
+        out.release()
+
+        # Log the goals video
+        size = (200, 200)
+        out = cv2.VideoWriter(os.path.join(episode_log_dir, "goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+        for i in range(len(self.goal_image_seq)):
+            rgb_img = cv2.cvtColor(self.goal_image_seq[i], cv2.COLOR_RGB2BGR)
+            out.write(rgb_img)
+        out.release()
+
+        # Log the combined image
+        size = (400, 200)
+        out = cv2.VideoWriter(os.path.join(episode_log_dir, "combined.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+        for i in range(len(self.combined_images)):
+            rgb_img = cv2.cvtColor(self.combined_images[i], cv2.COLOR_RGB2BGR)
+            out.write(rgb_img)
+        out.release()
+
+        # Log the actions
+        np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
+
+
     def reset(self):
         if self.episode_counter is None: # this is the first time reset has been called
             self.episode_counter = 0
@@ -89,40 +145,40 @@ class CustomModel(CalvinBaseModel):
             self.action_seq = []
             self.combined_images = []
         else:
-            episode_log_dir = os.path.join(self.log_dir, "ep" + str(self.episode_counter))
-            if not os.path.exists(episode_log_dir):
-                os.makedirs(episode_log_dir)
+            # episode_log_dir = os.path.join(self.log_dir, "ep" + str(self.episode_counter))
+            # if not os.path.exists(episode_log_dir):
+            #     os.makedirs(episode_log_dir)
 
-            # Log the language task
-            with open(os.path.join(episode_log_dir, "language_task.txt"), "w") as f:
-                f.write(self.language_task)
+            # # Log the language task
+            # with open(os.path.join(episode_log_dir, "language_task.txt"), "a") as f:
+            #     f.write(self.language_task)
             
-            # Log the observation video
-            size = (200, 200)
-            out = cv2.VideoWriter(os.path.join(episode_log_dir, "trajectory.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
-            for i in range(len(self.obs_image_seq)):
-                rgb_img = cv2.cvtColor(self.obs_image_seq[i], cv2.COLOR_RGB2BGR)
-                out.write(rgb_img)
-            out.release()
+            # # Log the observation video
+            # size = (200, 200)
+            # out = cv2.VideoWriter(os.path.join(episode_log_dir, "trajectory.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+            # for i in range(len(self.obs_image_seq)):
+            #     rgb_img = cv2.cvtColor(self.obs_image_seq[i], cv2.COLOR_RGB2BGR)
+            #     out.write(rgb_img)
+            # out.release()
 
-            # Log the goals video
-            size = (200, 200)
-            out = cv2.VideoWriter(os.path.join(episode_log_dir, "goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
-            for i in range(len(self.goal_image_seq)):
-                rgb_img = cv2.cvtColor(self.goal_image_seq[i], cv2.COLOR_RGB2BGR)
-                out.write(rgb_img)
-            out.release()
+            # # Log the goals video
+            # size = (200, 200)
+            # out = cv2.VideoWriter(os.path.join(episode_log_dir, "goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+            # for i in range(len(self.goal_image_seq)):
+            #     rgb_img = cv2.cvtColor(self.goal_image_seq[i], cv2.COLOR_RGB2BGR)
+            #     out.write(rgb_img)
+            # out.release()
 
-            # Log the combined image
-            size = (400, 200)
-            out = cv2.VideoWriter(os.path.join(episode_log_dir, "combined.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
-            for i in range(len(self.combined_images)):
-                rgb_img = cv2.cvtColor(self.combined_images[i], cv2.COLOR_RGB2BGR)
-                out.write(rgb_img)
-            out.release()
+            # # Log the combined image
+            # size = (400, 200)
+            # out = cv2.VideoWriter(os.path.join(episode_log_dir, "combined.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+            # for i in range(len(self.combined_images)):
+            #     rgb_img = cv2.cvtColor(self.combined_images[i], cv2.COLOR_RGB2BGR)
+            #     out.write(rgb_img)
+            # out.release()
 
-            # Log the actions
-            np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
+            # # Log the actions
+            # np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
 
             # Update/reset all the variables
             self.episode_counter += 1
@@ -197,6 +253,7 @@ def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_
     task_cfg = OmegaConf.load(conf_dir / "callbacks/rollout/tasks/new_playtable_tasks.yaml")
     task_oracle = hydra.utils.instantiate(task_cfg)
     val_annotations = OmegaConf.load(conf_dir / "annotations/new_playtable_validation.yaml")
+    import ipdb; ipdb.set_trace()
 
     eval_log_dir = get_log_dir(eval_log_dir)
 
@@ -260,6 +317,8 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
     model.reset()
     start_info = env.get_info()
 
+    print("lang_annotation:", lang_annotation)
+
     for step in range(EP_LEN):
         action = model.step(obs, lang_annotation)
         obs, _, _, current_info = env.step(action)
@@ -276,9 +335,15 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
         if len(current_task_info) > 0:
             if debug:
                 print(colored("success", "green"), end=" ")
+            print(colored("success", "green"), end=" ")
+            print("step:", step)
+            print("current_task_info:", current_task_info)
+            model.save_info(True)
             return True
     if debug:
         print(colored("fail", "red"), end=" ")
+    model.save_info(False)
+    print(colored("fail", "red"), end=" ")
     return False
 
 
@@ -314,6 +379,16 @@ def main():
         "--custom_model", action="store_true", help="Use this option to evaluate a custom model architecture."
     )
 
+    parser.add_argument(
+        "--diffusion_model_framework",
+        type=str,
+        default="jax",
+        choices=["jax", "pytorch"],
+        help="Comma separated list of epochs for which checkpoints will be loaded",
+    )
+
+    
+
     parser.add_argument("--debug", action="store_true", help="Print debug info and visualize environment.")
 
     parser.add_argument("--eval_log_dir", default=None, type=str, help="Where to log the evaluation results.")
@@ -323,9 +398,9 @@ def main():
 
     # evaluate a custom model
     if args.custom_model:
-        model = CustomModel()
+        model = CustomModel(args.diffusion_model_framework)
         env = make_env(args.dataset_path)
-        evaluate_policy(model, env, debug=args.debug)
+        evaluate_policy(model, env, debug=args.debug, eval_log_dir=model.log_dir)
     else:
         assert "train_folder" in args
 
@@ -353,6 +428,7 @@ def main():
                 device_id=args.device,
             )
             evaluate_policy(model, env, epoch, eval_log_dir=args.eval_log_dir, debug=args.debug, create_plan_tsne=True)
+            # evaluate_policy(model, env, epoch, eval_log_dir=model.log_dir, debug=args.debug, create_plan_tsne=True)
 
 
 if __name__ == "__main__":
