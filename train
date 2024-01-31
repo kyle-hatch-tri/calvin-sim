@@ -1,0 +1,124 @@
+
+echo "WANDB_API_KEY: $WANDB_API_KEY"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+echo "NUM_EVAL_SEQUENCES: $NUM_EVAL_SEQUENCES"
+echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
+echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
+echo "DIFFUSION_MODEL_CHECKPOINT_PATH: $DIFFUSION_MODEL_CHECKPOINT_PATH"
+echo "GC_POLICY_CHECKPOINT_PATH: $GC_POLICY_CHECKPOINT_PATH"
+echo "DIFFUSION_MODEL_FRAMEWORK: $DIFFUSION_MODEL_FRAMEWORK"
+echo "SAVE_TO_S3: $SAVE_TO_S3"
+echo "S3_SAVE_URI: $S3_SAVE_URI"
+echo "NUM_DENOISING_STEPS: $NUM_DENOISING_STEPS"
+echo "USE_TEMPORAL_ENSEMBLING: $USE_TEMPORAL_ENSEMBLING"
+echo "DEBUG: $DEBUG"
+
+export DIFFUSION_MODEL_CHECKPOINT="$DIFFUSION_MODEL_CHECKPOINT-$DIFFUSION_MODEL_CHECKPOINT_PATH"
+echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
+
+
+
+
+if [[ "$GC_POLICY_CHECKPOINT_PATH" == *","* ]]; then
+    echo "MULTI MODE"
+    base_gc_policy_checkpoint=$GC_POLICY_CHECKPOINT
+    IFS=',' read -r -a low_level_checkpoints <<< "$GC_POLICY_CHECKPOINT_PATH"
+    for i in "${!low_level_checkpoints[@]}"
+    do
+        echo "low_level_checkpoints[$i]: ${low_level_checkpoints[i]}"
+        export CUDA_VISIBLE_DEVICES=$i 
+        echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+        
+        export GC_POLICY_CHECKPOINT="$base_gc_policy_checkpoint-${low_level_checkpoints[i]}"
+        echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
+
+        if [[ "$GC_POLICY_CHECKPOINT" == *"gcbc_diffusion"* ]]; then
+            agent_type="gc_ddpm_bc"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"public"* ]]; then
+            agent_type="gc_ddpm_bc"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"gcbc"* ]]; then
+            agent_type="gc_bc"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql2"* ]]; then
+            agent_type="gc_iql2"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql3"* ]]; then
+            agent_type="gc_iql3"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql4"* ]]; then
+            agent_type="gc_iql4"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql5"* ]]; then
+            agent_type="gc_iql5"
+        elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql"* ]]; then
+            agent_type="gc_iql"
+        else 
+            echo "Unsupported agent_type in $GC_POLICY_CHECKPOINT"
+            exit 125
+        fi
+
+        echo "agent_type: $agent_type"
+
+        python3 -u evaluate_policy_subgoal_diffusion.py \
+        --dataset_path mini_dataset \
+        --custom_model 1 \
+        --diffusion_model_checkpoint_path $DIFFUSION_MODEL_CHECKPOINT_PATH \
+        --gc_policy_checkpoint_path ${low_level_checkpoints[i]} \
+        --diffusion_model_framework $DIFFUSION_MODEL_FRAMEWORK \
+        --save_to_s3 $SAVE_TO_S3 \
+        --s3_save_uri $S3_SAVE_URI \
+        --agent_type $agent_type \
+        --use_temporal_ensembling $USE_TEMPORAL_ENSEMBLING \
+        --num_denoising_steps $NUM_DENOISING_STEPS &
+    done
+
+    wait
+
+else 
+    echo "SINGLE MODE"
+    export GC_POLICY_CHECKPOINT="$GC_POLICY_CHECKPOINT-$GC_POLICY_CHECKPOINT_PATH"
+    echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
+
+    if [[ "$GC_POLICY_CHECKPOINT" == *"gcbc_diffusion"* ]]; then
+        agent_type="gc_ddpm_bc"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"public"* ]]; then
+        agent_type="gc_ddpm_bc"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"gcbc"* ]]; then
+        agent_type="gc_bc"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql2"* ]]; then
+        agent_type="gc_iql2"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql3"* ]]; then
+        agent_type="gc_iql3"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql4"* ]]; then
+        agent_type="gc_iql4"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql5"* ]]; then
+        agent_type="gc_iql5"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"gciql"* ]]; then
+        agent_type="gc_iql"
+    else 
+        echo "Unsupported agent_type in $GC_POLICY_CHECKPOINT"
+        exit 125
+    fi
+
+    # python3 -u calvin_models/calvin_agent/evaluation/evaluate_policy_subgoal_diffusion.py \
+    python3 -u evaluate_policy_subgoal_diffusion.py \
+    --dataset_path mini_dataset \
+    --custom_model 1 \
+    --diffusion_model_checkpoint_path $DIFFUSION_MODEL_CHECKPOINT_PATH \
+    --gc_policy_checkpoint_path $GC_POLICY_CHECKPOINT_PATH \
+    --diffusion_model_framework $DIFFUSION_MODEL_FRAMEWORK \
+    --save_to_s3 $SAVE_TO_S3 \
+    --s3_save_uri $S3_SAVE_URI \
+    --agent_type $agent_type \
+    --use_temporal_ensembling $USE_TEMPORAL_ENSEMBLING \
+    --num_denoising_steps $NUM_DENOISING_STEPS
+fi
+
+
+
+
+# Get working with non-history policy 
+# Today (or tomorrow, value function filtering)
+# Arg for number of diffusion steps 
+    # Also add to the logdir or something 
+
+# Can use the script to run a bunch of evals in parrallel
+# p4de or p4d, run 8 evals, one on each process 
+    # Need to download all of the checkpoints with S3, 

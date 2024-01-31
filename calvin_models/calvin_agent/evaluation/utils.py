@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from pydoc import locate
 
-from calvin_agent.models.mcil import MCIL
+# from calvin_agent.models.mcil import MCIL ###UNCOMMENT
 from calvin_agent.utils.utils import add_text, format_sftp_path
 import cv2
 import hydra
@@ -93,6 +93,13 @@ def print_and_save(results, sequences, log_dir, epoch=None):
     print("Success rates for i instructions in a row:")
     for i, sr in chain_sr.items():
         print(f"{i}: {sr * 100:.1f}%")
+
+
+    with open(log_dir / "results.txt", "w") as f:
+        f.write(f"Average successful sequence length: {avg_seq_len}\n")
+        f.write("Success rates for i instructions in a row:\n")
+        for i, sr in chain_sr.items():
+            f.write(f"{i}: {sr * 100:.1f}%\n")
 
     cnt_success = Counter()
     cnt_fail = Counter()

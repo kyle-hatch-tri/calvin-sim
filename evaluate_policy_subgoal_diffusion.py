@@ -9,9 +9,17 @@ import requests
 import json
 import cv2
 from tqdm import tqdm
-import jax_diffusion_model
-import pytorch_diffusion_model
-import diffusion_gc_policy
+# import jax_diffusion_model
+# import pytorch_diffusion_model
+# import diffusion_gc_policy
+from calvin_agent.evaluation import jax_diffusion_model
+from calvin_agent.evaluation import pytorch_diffusion_model
+from calvin_agent.evaluation import diffusion_gc_policy
+
+import datetime
+from s3_save import S3SyncCallback
+
+
 
 # This is for using the locally installed repo clone when using slurm
 from calvin_agent.models.calvin_base_model import CalvinBaseModel
@@ -33,7 +41,7 @@ from calvin_agent.utils.utils import get_all_checkpoints, get_checkpoints_for_ep
 import hydra
 import numpy as np
 from omegaconf import OmegaConf
-from pytorch_lightning import seed_everything
+# from pytorch_lightning import seed_everything # UNCOMMENT
 from termcolor import colored
 import torch
 from tqdm.auto import tqdm
@@ -43,8 +51,16 @@ from calvin_env.envs.play_table_env import get_env
 
 logger = logging.getLogger(__name__)
 
-EP_LEN = 360
-NUM_SEQUENCES = int(os.getenv("NUM_EVAL_SEQUENCES"))
+if  int(os.getenv("DEBUG")):
+    EP_LEN = 10
+    NUM_SEQUENCES = 100
+else:
+    EP_LEN = 360
+    NUM_SEQUENCES = int(os.getenv("NUM_EVAL_SEQUENCES"))
+
+print("os.getenv(\"CUDA_VISIBLE_DEVICES\"):", os.getenv("CUDA_VISIBLE_DEVICES"))
+print("EP_LEN:", EP_LEN)
+print("NUM_SEQUENCES:", NUM_SEQUENCES)
 
 def make_env(dataset_path):
     val_folder = Path(dataset_path) / "validation"
@@ -56,18 +72,24 @@ def make_env(dataset_path):
 
 
 class CustomModel(CalvinBaseModel):
-    def __init__(self, diffusion_model_framework="jax"):
+    def __init__(self, agent_type, use_temporal_ensembling, diffusion_model_checkpoint_path, gc_policy_checkpoint_path, num_denoising_steps, diffusion_model_framework="jax"):
         # Initialize diffusion model
 
         if diffusion_model_framework == "jax":
-            self.diffusion_model = jax_diffusion_model.DiffusionModel()
+            self.diffusion_model = jax_diffusion_model.DiffusionModel(num_denoising_steps)
         elif diffusion_model_framework == "pytorch":
             self.diffusion_model = pytorch_diffusion_model.PytorchDiffusionModel()
         else:
             raise ValueError(f"Unsupported diffusion model framework: \"{diffusion_model_framework}\".")
 
         # Initialize GCBC
-        self.gc_policy = diffusion_gc_policy.GCPolicy()
+        
+
+        self.gc_policy = diffusion_gc_policy.GCPolicy(agent_type, use_temporal_ensembling=use_temporal_ensembling)
+
+        # self.gc_policy = diffusion_gc_policy.GCPolicyNoBuffer()
+
+        
 
         # For each eval episode we need to log the following:
         #   (1) language task
@@ -78,11 +100,36 @@ class CustomModel(CalvinBaseModel):
         # self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-2:])
         
 
-        if "jax_model" in os.getenv("DIFFUSION_MODEL_CHECKPOINT"):
-            self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-4:-1])
-        else:
-            self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-3:])
+        # if "jax_model" in os.getenv("DIFFUSION_MODEL_CHECKPOINT"):
+        #     self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-4:-1])
+        # else:
+        #     self.log_dir = os.path.join("experiments", *os.getenv("DIFFUSION_MODEL_CHECKPOINT").split("/")[-3:])
 
+        # self.log_dir = os.path.join(self.log_dir,  *os.getenv("GC_POLICY_CHECKPOINT").split("/")[-2:])
+        # if "jax_model" in diffusion_model_checkpoint_path:
+        #     self.log_dir = os.path.join("experiments", *diffusion_model_checkpoint_path.split("/")[-4:-1])
+        # else:
+        #     self.log_dir = os.path.join("experiments", *diffusion_model_checkpoint_path.split("/")[-3:])
+
+        # self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.split("/")[-2:])
+
+        if "jax_model" in diffusion_model_checkpoint_path:
+            self.log_dir = os.path.join("experiments", *diffusion_model_checkpoint_path.replace("-", "/").split("/")[-4:-1])
+        else:
+            self.log_dir = os.path.join("experiments", *diffusion_model_checkpoint_path.replace("-", "/").split("/")[-3:])
+
+        
+        if use_temporal_ensembling:
+            ensemb_str = "tmpensb"
+        else:
+            ensemb_str = "notmpensb"
+
+        timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
+
+        
+
+        self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], f"{num_denoising_steps}_denoising_steps", ensemb_str, timestamp)
+        
 
         print(f"Logging to \"{self.log_dir}\"...")
         os.makedirs(self.log_dir, exist_ok=True)
@@ -135,6 +182,8 @@ class CustomModel(CalvinBaseModel):
 
         # Log the actions
         np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
+
+        # Could also upload to S3 here if we want to 
 
 
     def reset(self):
@@ -210,8 +259,11 @@ class CustomModel(CalvinBaseModel):
 
         # If we need to, generate a new goal image
         if self.goal_image is None or self.subgoal_counter >= self.subgoal_max:
+            t0 = time.time()
             self.goal_image = self.diffusion_model.generate(self.language_task, rgb_obs)
+            t1 = time.time()
             self.subgoal_counter = 0
+            print(f"t1 - t0: {t1 - t0:.3f}")
 
         # Log the image observation and the goal image
         self.obs_image_seq.append(rgb_obs)
@@ -249,18 +301,18 @@ def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_
     Returns:
         Dictionary with results
     """
-    conf_dir = Path(__file__).absolute().parents[2] / "conf"
+    # conf_dir = Path(__file__).absolute().parents[2] / "conf"
+    conf_dir = Path(__file__).absolute().parents[0] / "calvin_models" / "conf"
     task_cfg = OmegaConf.load(conf_dir / "callbacks/rollout/tasks/new_playtable_tasks.yaml")
     task_oracle = hydra.utils.instantiate(task_cfg)
     val_annotations = OmegaConf.load(conf_dir / "annotations/new_playtable_validation.yaml")
-    import ipdb; ipdb.set_trace()
 
     eval_log_dir = get_log_dir(eval_log_dir)
 
     eval_sequences = get_sequences(NUM_SEQUENCES)
 
     results = []
-    plans = defaultdict(list)
+    plans = defaultdict(list) 
 
     if not debug:
         eval_sequences = tqdm(eval_sequences, position=0, leave=True)
@@ -310,6 +362,7 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
     if debug:
         print(f"{subtask} ", end="")
         time.sleep(0.5)
+
     obs = env.get_obs()
 
     # get lang annotation for subtask
@@ -348,7 +401,7 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
 
 
 def main():
-    seed_everything(0, workers=True)  # type:ignore
+    # seed_everything(0, workers=True)  # type:ignore ###UNCOMMENT
     parser = argparse.ArgumentParser(description="Evaluate a trained model on multistep sequences with language goals.")
     parser.add_argument("--dataset_path", type=str, help="Path to the dataset root directory.")
 
@@ -375,8 +428,11 @@ def main():
     )
 
     # arguments for loading custom model or custom language embeddings
+    # parser.add_argument(
+    #     "--custom_model", action="store_true", help="Use this option to evaluate a custom model architecture."
+    # )
     parser.add_argument(
-        "--custom_model", action="store_true", help="Use this option to evaluate a custom model architecture."
+        "--custom_model", type=int, default=1, help="Use this option to evaluate a custom model architecture."
     )
 
     parser.add_argument(
@@ -387,21 +443,55 @@ def main():
         help="Comma separated list of epochs for which checkpoints will be loaded",
     )
 
-    
+    parser.add_argument(
+        "--diffusion_model_checkpoint_path", type=str, help="Use this option to evaluate a custom model architecture."
+    )
 
-    parser.add_argument("--debug", action="store_true", help="Print debug info and visualize environment.")
+    parser.add_argument(
+        "--gc_policy_checkpoint_path", type=str, help="Use this option to evaluate a custom model architecture."
+    )
+
+    parser.add_argument(
+        "--s3_save_uri", type=str, help="Use this option to evaluate a custom model architecture."
+    )
+
+    parser.add_argument(
+        "--save_to_s3", type=int, default=1, help="Use this option to evaluate a custom model architecture."
+    )
+
+
+    parser.add_argument(
+        "--num_denoising_steps", type=int, default=200, help="Use this option to evaluate a custom model architecture."
+    )
+
+    parser.add_argument(
+        "--agent_type", type=str, help="Use this option to evaluate a custom model architecture."
+    )
+
+    parser.add_argument(
+        "--use_temporal_ensembling", type=int, default=1, help="Use this option to evaluate a custom model architecture."
+    )
+
+
+
+    # parser.add_argument("--debug", action="store_true", help="Print debug info and visualize environment.")
+    parser.add_argument("--debug", type=int, default=0)
 
     parser.add_argument("--eval_log_dir", default=None, type=str, help="Where to log the evaluation results.")
 
     parser.add_argument("--device", default=0, type=int, help="CUDA device")
     args = parser.parse_args()
 
+
+    # timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
+
     # evaluate a custom model
     if args.custom_model:
-        model = CustomModel(args.diffusion_model_framework)
+        model = CustomModel(args.agent_type, args.use_temporal_ensembling, args.diffusion_model_checkpoint_path, args.gc_policy_checkpoint_path, args.num_denoising_steps, args.diffusion_model_framework)
         env = make_env(args.dataset_path)
         evaluate_policy(model, env, debug=args.debug, eval_log_dir=model.log_dir)
     else:
+        assert False 
         assert "train_folder" in args
 
         checkpoints = []
@@ -430,6 +520,15 @@ def main():
             evaluate_policy(model, env, epoch, eval_log_dir=args.eval_log_dir, debug=args.debug, create_plan_tsne=True)
             # evaluate_policy(model, env, epoch, eval_log_dir=model.log_dir, debug=args.debug, create_plan_tsne=True)
 
+    
+
+    if int(os.getenv("DEBUG")):
+        args.s3_save_uri = os.path.join(args.s3_save_uri, "el_trasho")
+
+
+    s3_callback = S3SyncCallback(model.log_dir, os.path.join(args.s3_save_uri, "/".join(model.log_dir.split("/")[1:])) + "/")
+    s3_callback.on_train_epoch_end()
+    
 
 if __name__ == "__main__":
     main()

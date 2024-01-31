@@ -8,7 +8,7 @@ import cv2
 import git
 import hydra
 import numpy as np
-import pytorch_lightning
+# import pytorch_lightning ###UNCOMMENT
 import torch
 import tqdm
 
@@ -80,7 +80,7 @@ def info_packages() -> Dict[str, str]:
         "numpy": np.__version__,
         "pyTorch_version": torch.__version__,
         "pyTorch_debug": str(torch.version.debug),
-        "pytorch-lightning": pytorch_lightning.__version__,
+        # "pytorch-lightning": pytorch_lightning.__version__, ###UNCOMMENT
         "tqdm": tqdm.__version__,
     }
 
