@@ -43,9 +43,19 @@ def launch(args):
             if single_gc_policy_checkpoint[-1] != "/":
                 single_gc_policy_checkpoint += "/"
             gc_policy_checkpoints.append(single_gc_policy_checkpoint)
+
+
+        gc_vf_checkpoints = []
+        for single_gc_vf_checkpoint in args.gc_vf_checkpoint.split(","):
+            if single_gc_vf_checkpoint[-1] != "/":
+                single_gc_vf_checkpoint += "/"
+            gc_vf_checkpoints.append(single_gc_vf_checkpoint)
     else:
         if args.gc_policy_checkpoint[-1] != "/":
             args.gc_policy_checkpoint += "/"
+
+        if args.gc_vf_checkpoint[-1] != "/":
+            args.gc_vf_checkpoint += "/"
 
 
     if args.diffusion_model_checkpoint[-1] != "/":
@@ -54,25 +64,17 @@ def launch(args):
 
     if args.input_source == 'local':
         input_mode = 'File'
-        # training_inputs = {"diffusion_model_checkpoint":'file://' + args.diffusion_model_checkpoint,
-        #                    "gc_policy_checkpoint":'file://' + args.gc_policy_checkpoint}
-        # training_inputs = {"diffusion_model_checkpoint-" + "-".join(args.diffusion_model_checkpoint.split("/")[-4:-1]):'file://' + args.diffusion_model_checkpoint,
-        #                    "gc_policy_checkpoint-" + "-".join(args.gc_policy_checkpoint.split("/")[-2:]):'file://' + args.gc_policy_checkpoint}
-
-        # if multi_mode:
-        #     training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-4:-1]):'file://' + args.diffusion_model_checkpoint}
-        #     for single_gc_policy_checkpoint in args.gc_policy_checkpoint.split(","):
-        #         training_inputs["l-" + "-".join(single_gc_policy_checkpoint.split("/")[-2:])] = 'file://' + single_gc_policy_checkpoint
-        # else:
-        #     training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-4:-1]):'file://' + args.diffusion_model_checkpoint,
-        #                     "l-" + "-".join(args.gc_policy_checkpoint.split("/")[-2:]):'file://' + args.gc_policy_checkpoint}
         if multi_mode:
             training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-5:-2]):'file://' + args.diffusion_model_checkpoint}
             for single_gc_policy_checkpoint in gc_policy_checkpoints:
-                training_inputs["l-" + "-".join(single_gc_policy_checkpoint.split("/")[-3:-1])] = 'file://' + single_gc_policy_checkpoint
+                training_inputs["l-" + "-".join(single_gc_policy_checkpoint.split("/")[-5:-1])] = 'file://' + single_gc_policy_checkpoint
+
+            for single_gc_vf_checkpoint in gc_vf_checkpoints:
+                training_inputs["v-" + "-".join(single_gc_vf_checkpoint.split("/")[-3:-1])] = 'file://' + single_gc_vf_checkpoint
         else:
             training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-5:-2]):'file://' + args.diffusion_model_checkpoint,
-                            "l-" + "-".join(args.gc_policy_checkpoint.split("/")[-3:-1]):'file://' + args.gc_policy_checkpoint}
+                            "l-" + "-".join(args.gc_policy_checkpoint.split("/")[-5:-1]):'file://' + args.gc_policy_checkpoint,
+                            "v-" + "-".join(args.gc_vf_checkpoint.split("/")[-3:-1]):'file://' + args.gc_vf_checkpoint}
             
     elif args.input_source == 'lustre':
         input_mode = 'File'
@@ -84,22 +86,16 @@ def launch(args):
         )
     elif args.input_source == 's3':
         input_mode = 'FastFile'
-        # training_inputs = {"diffusion_model_checkpoint":args.diffusion_model_checkpoint,
-        #                    "gc_policy_checkpoint":args.gc_policy_checkpoint}
-        # if multi_mode:
-        #     training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-4:-1]):args.diffusion_model_checkpoint}
-        #     for single_gc_policy_checkpoint in args.gc_policy_checkpoint.split(","):
-        #         training_inputs["l-" + "-".join(single_gc_policy_checkpoint.split("/")[-2:])] = single_gc_policy_checkpoint
-        # else:
-        #     training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-4:-1]):args.diffusion_model_checkpoint,
-        #                     "l-" + "-".join(args.gc_policy_checkpoint.split("/")[-2:]):args.gc_policy_checkpoint}
         if multi_mode:
             training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-5:-2]):args.diffusion_model_checkpoint}
             for single_gc_policy_checkpoint in gc_policy_checkpoints:
-                training_inputs["l-" + "-".join(single_gc_policy_checkpoint.split("/")[-3:-1])] = single_gc_policy_checkpoint
+                training_inputs["l-" + "-".join(single_gc_policy_checkpoint.split("/")[-5:-1])] = single_gc_policy_checkpoint
+            for single_gc_vf_checkpoint in gc_vf_checkpoints:
+                training_inputs["v-" + "-".join(single_gc_vf_checkpoint.split("/")[-3:-1])] = single_gc_vf_checkpoint # TODO also change this to -5:-1?
         else:
             training_inputs = {"h-" + "-".join(args.diffusion_model_checkpoint.split("/")[-5:-2]):args.diffusion_model_checkpoint,
-                            "l-" + "-".join(args.gc_policy_checkpoint.split("/")[-3:-1]):args.gc_policy_checkpoint}
+                            "l-" + "-".join(args.gc_policy_checkpoint.split("/")[-5:-1]):args.gc_policy_checkpoint,
+                            "v-" + "-".join(args.gc_vf_checkpoint.split("/")[-3:-1]):args.gc_vf_checkpoint}
     else:
         raise ValueError(f'Invalid input source {args.input_source}')
 
@@ -186,53 +182,46 @@ def launch(args):
 
 
 
-    # if multi_mode:
-    #     gc_policy_checkpoint_paths = []
-    #     for single_gc_policy_checkpoint in args.gc_policy_checkpoint.split(","):
-    #         gc_policy_checkpoint_paths.append("-".join(single_gc_policy_checkpoint.split("/")[-2:]))
-
-    #     gc_policy_checkpoint_path = ",".join(gc_policy_checkpoint_paths)
-
-    # else:
-    #     gc_policy_checkpoint_path = "-".join(args.gc_policy_checkpoint.split("/")[-2:])
-
 
     if multi_mode:
         gc_policy_checkpoint_paths = []
         for single_gc_policy_checkpoint in gc_policy_checkpoints:
             gc_policy_checkpoint_paths.append("-".join(single_gc_policy_checkpoint.split("/")[-3:-1]))
-
         gc_policy_checkpoint_path = ",".join(gc_policy_checkpoint_paths)
+
+
+        gc_vf_checkpoint_paths = []
+        for single_gc_vf_checkpoint in gc_vf_checkpoints:
+            gc_vf_checkpoint_paths.append("-".join(single_gc_vf_checkpoint.split("/")[-3:-1]))
+        gc_vf_checkpoint_path = ",".join(gc_vf_checkpoint_paths)
 
     else:
         gc_policy_checkpoint_path = "-".join(args.gc_policy_checkpoint.split("/")[-3:-1])
+        gc_vf_checkpoint_path = "-".join(args.gc_vf_checkpoint.split("/")[-3:-1])
     
 
     environment = {
         'WANDB_API_KEY': args.wandb_api_key,
         'WANDB_ENTITY': "tri",
-        # 'DIFFUSION_MODEL_CHECKPOINT':args.diffusion_model_checkpoint,
-        # 'GC_POLICY_CHECKPOINT':args.gc_policy_checkpoint,
         'DIFFUSION_MODEL_CHECKPOINT':"/opt/ml/input/data/h",
         'GC_POLICY_CHECKPOINT':"/opt/ml/input/data/l",
+        'GC_VF_CHECKPOINT':"/opt/ml/input/data/v",
         'NUM_EVAL_SEQUENCES':args.num_eval_sequences,
 
         # "CUDA_VISIBLE_DEVICES":"1",
         # "XLA_PYTHON_CLIENT_PREALLOCATE":"false",
 
         'DIFFUSION_MODEL_FRAMEWORK': diffusion_model_framework,
-        # 'DIFFUSION_MODEL_CHECKPOINT_PATH':args.diffusion_model_checkpoint,
-        # 'GC_POLICY_CHECKPOINT_PATH':args.gc_policy_checkpoint,
-        # 'DIFFUSION_MODEL_CHECKPOINT_PATH':"-".join(args.diffusion_model_checkpoint.split("/")[-4:-1]),
         'DIFFUSION_MODEL_CHECKPOINT_PATH':"-".join(args.diffusion_model_checkpoint.split("/")[-5:-2]),
-        # 'GC_POLICY_CHECKPOINT_PATH':"-".join(args.gc_policy_checkpoint.split("/")[-2:]),
         "GC_POLICY_CHECKPOINT_PATH": gc_policy_checkpoint_path,
+        "GC_VF_CHECKPOINT_PATH": gc_vf_checkpoint_path,
         "SAVE_TO_S3":args.save_to_s3,
         "S3_SAVE_URI":args.s3_save_uri,
 
         "DEBUG":args.debug,
         "NUM_DENOISING_STEPS":args.num_denoising_steps,
-        "USE_TEMPORAL_ENSEMBLING":args.use_temporal_ensembling
+        "NUM_SAMPLES":args.num_samples,
+        # "USE_TEMPORAL_ENSEMBLING":args.use_temporal_ensembling
     }
 
     print("environment:", environment)
@@ -320,6 +309,7 @@ if __name__ == '__main__':
     parser.add_argument('--s3_save_uri', type=str, default="s3://kyle-sagemaker-training-outputs/eval-outputs")
     parser.add_argument('--diffusion_model_checkpoint', type=str)
     parser.add_argument('--gc_policy_checkpoint', type=str)
+    parser.add_argument('--gc_vf_checkpoint', type=str)
     # parser.add_argument('--num_eval_sequences', type=int)
     parser.add_argument('--num_eval_sequences', type=str)
     parser.add_argument('--wandb-api-key', type=str, default=None)
@@ -327,7 +317,8 @@ if __name__ == '__main__':
     parser.add_argument('--instance-count', type=int, default=1)
     # parser.add_argument('--num_denoising_steps', type=int, default=200)
     parser.add_argument('--num_denoising_steps', type=str, default="200")
-    parser.add_argument('--use_temporal_ensembling', type=str, default="1")
+    parser.add_argument('--num_samples', type=str, default="1")
+    # parser.add_argument('--use_temporal_ensembling', type=str, default="1")
     parser.add_argument('--entry_point', type=str, default='scripts/train.py'),
     parser.add_argument('--enable_ddp', action='store_true', default=False)
     parser.add_argument('--instance_type', type=str, default="ml.p4de.24xlarge"),

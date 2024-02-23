@@ -3,7 +3,9 @@ from glob import glob
 
 """
 cd /home/kylehatch/Desktop/hidql/eval_outputs
-aws s3 sync --exclude "*" --include "*results.txt" s3://kyle-sagemaker-training-outputs/eval-outputs/ .
+aws s3 sync --exclude "*" --include "*results.txt" s3://kyle-sagemaker-training-outputs/eval-outputs/jax_model .
+
+aws s3 ls s3://kyle-sagemaker-training-outputs/eval-outputs/jax_model/**.txt 
 """
 
 EVAL_OUTPUTS_DIR = "/home/kylehatch/Desktop/hidql/eval_outputs"
@@ -18,16 +20,18 @@ EVAL_OUTPUTS_DIR = "/home/kylehatch/Desktop/hidql/eval_outputs"
 # DENOISING_STEPS = [50]
 # ENSEMBLE = ["tmpensb", "notmpensb"]
 
-
-ALGOS = ["gcbc", "gciql", "gciql2", "gciql3", "gciql4", "gciql5"]
-CHECKPOINTS = ["only_checkpoint", 50_000]
-DENOISING_STEPS = [50]
-ENSEMBLE = ["notmpensb"]
-
-# ALGOS = ["public_checkpoint", "gcbc_diffusion"]
+# ALGOS = ["gcbc", "gciql", "gciql2", "gciql3", "gciql4", "gciql5"]
 # CHECKPOINTS = ["only_checkpoint", 50_000]
 # DENOISING_STEPS = [50]
-# ENSEMBLE = ["tmpensb"]
+# ENSEMBLE = ["notmpensb"]
+
+# ALGOS = ["public_checkpoint", "gcbc_diffusion", "gcbc", "gciql", "gciql2", "gciql3", "gciql4", "gciql5"]
+# CHECKPOINTS = ["only_checkpoint", 50_000]
+# NUM_SAMPLES = [32]
+
+ALGOS = ["public_checkpoint", "gcbc_diffusion", "gcbc", "gciql", "gciql2", "gciql3", "gciql4", "gciql5"]
+CHECKPOINTS = ["only_checkpoint", 50_000]
+NUM_SAMPLES = [1]
 
 
 def print_results_file(results_file):
@@ -36,12 +40,47 @@ def print_results_file(results_file):
         print(f.read())
 
 
+# def view_outputs():
+#     filepaths = glob(os.path.join(EVAL_OUTPUTS_DIR, "**", "*results.txt"), recursive=True)
+#     for results_file in sorted(filepaths):
+#         results_file_parts = results_file.split("/")
+#         algo, checkpoint = results_file_parts[-5].split("-")
+#         # print(results_file)
+
+#         if "gcbc_diffusion" in algo:
+#             algo = "gcbc_diffusion"
+#         elif algo != "public_checkpoint":
+#             algo = algo.split("_")[0]
+
+#         if checkpoint != "only_checkpoint":
+#             checkpoint = int(checkpoint.split("_")[-1])
+
+#         denoising_steps = int(results_file_parts[-4].split("_")[0])
+#         ensemble = results_file_parts[-3]
+
+#         if algo not in ALGOS:
+#             continue 
+
+#         if checkpoint not in CHECKPOINTS:
+#             continue 
+
+#         if denoising_steps not in DENOISING_STEPS:
+#             continue 
+
+#         if ensemble not in ENSEMBLE:
+#             continue 
+
+
+#         print_results_file(results_file)
 def view_outputs():
     filepaths = glob(os.path.join(EVAL_OUTPUTS_DIR, "**", "*results.txt"), recursive=True)
     for results_file in sorted(filepaths):
         results_file_parts = results_file.split("/")
-        algo, checkpoint = results_file_parts[-5].split("-")
+        # algo, checkpoint = results_file_parts[-5].split("-")
         # print(results_file)
+
+        algo = results_file_parts[-9]
+        checkpoint = results_file_parts[-8]
 
         if "gcbc_diffusion" in algo:
             algo = "gcbc_diffusion"
@@ -51,20 +90,14 @@ def view_outputs():
         if checkpoint != "only_checkpoint":
             checkpoint = int(checkpoint.split("_")[-1])
 
-        denoising_steps = int(results_file_parts[-4].split("_")[0])
-        ensemble = results_file_parts[-3]
+
+        num_samples = int(results_file_parts[-4].split("_")[0])
 
         if algo not in ALGOS:
-            continue 
+            continue
 
-        if checkpoint not in CHECKPOINTS:
-            continue 
-
-        if denoising_steps not in DENOISING_STEPS:
-            continue 
-
-        if ensemble not in ENSEMBLE:
-            continue 
+        if num_samples not in NUM_SAMPLES:
+            continue
 
 
         print_results_file(results_file)

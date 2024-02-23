@@ -9,8 +9,10 @@ import os
 import time
 
 class DiffusionModel:
-    def __init__(self, num_denoising_steps=200):
+    def __init__(self, num_denoising_steps=200, num_samples=1):
         initialize_compilation_cache()
+
+        self.num_samples = num_samples
 
         self.sample_fn = create_sample_fn(
             os.getenv("DIFFUSION_MODEL_CHECKPOINT"),
@@ -21,7 +23,7 @@ class DiffusionModel:
             context_w=1.5,
             eta=0.0,
             pretrained_path="runwayml/stable-diffusion-v1-5:flax",
-            num_samples=7,
+            num_samples=self.num_samples,
         )
 
 
@@ -35,10 +37,12 @@ class DiffusionModel:
 
         t0 = time.time()
         sample = self.sample_fn(image_obs, language_command, prompt_w=7.5, context_w=1.5)
-        import ipdb; ipdb.set_trace()
+
         t1 = time.time()
         print(f"\t>>t1 - t0: {t1 - t0:.3f}")
-        return np.array(Image.fromarray(sample).resize((200, 200))).astype(np.uint8)
+        # return np.array(Image.fromarray(sample).resize((200, 200))).astype(np.uint8)
+
+        return np.array([np.array(Image.fromarray(s).resize((200, 200))).astype(np.uint8) for s in sample])
     
 
 if __name__ == "__main__":

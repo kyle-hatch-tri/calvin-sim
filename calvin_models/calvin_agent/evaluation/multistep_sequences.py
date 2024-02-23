@@ -359,7 +359,6 @@ def get_sequences(num_sequences=1000, num_workers=None):
         "pink_block": ["table", "slider_right", "slider_left"],
         "grasped": [0],
     }
-
     f = lambda l: l.count("table") in [1, 2] and l.count("slider_right") < 2 and l.count("slider_left") < 2
     value_combinations = filter(f, product(*possible_conditions.values()))
     initial_states = [dict(zip(possible_conditions.keys(), vals)) for vals in value_combinations]

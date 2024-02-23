@@ -226,7 +226,8 @@ def create_sample_fn(
     # load encoders
     vae_encode, vae_decode = load_vae(pretrained_path)
     tokenize, untokenize, text_encode = load_text_encoder(pretrained_path)
-    uncond_prompt_embed = text_encode(tokenize([""]))  # (1, 77, 768)
+    # uncond_prompt_embed = text_encode(tokenize([""]))  # (1, 77, 768)
+    uncond_prompt_embed = text_encode(tokenize(["" for _ in range(num_samples)]))  # (num_samples, 77, 768)
 
     log_snr_fn = scheduling.create_log_snr_fn(config["scheduling"])
     sample_loop = partial(sampling.sample_loop, log_snr_fn=log_snr_fn)
@@ -271,15 +272,22 @@ def create_sample_fn(
         image = image[None]
         assert image.shape == (1, 256, 256, 3)
 
-        import ipdb; ipdb.set_trace()
+        prompt_embeds = text_encode(tokenize([prompt for _ in range(num_samples)]))
 
-        prompt_embeds = text_encode(tokenize([prompt]))
+        if num_samples > 1:
+            image = np.repeat(image, num_samples, axis=0)
 
         # encode stuff
         rng, encode_rng = jax.random.split(rng)
         contexts = vae_encode(encode_rng, image, scale=False)
 
         rng, sample_rng = jax.random.split(rng)
+
+        # x = [prompt for _ in range(num_samples)]
+        # print("image.shape:", image.shape)
+        # print("x:", x)
+        # print("prompt_embeds.shape:", prompt_embeds.shape)
+        
         samples = sample_loop(
             sample_rng,
             state,
@@ -292,9 +300,11 @@ def create_sample_fn(
             uncond_y=jnp.zeros_like(contexts),
             uncond_prompt_embeds=uncond_prompt_embed,
         )
+
         samples = vae_decode(samples)
         samples = jnp.clip(jnp.round(samples * 127.5 + 127.5), 0, 255).astype(jnp.uint8)
 
-        return jax.device_get(samples[0])
+        # return jax.device_get(samples[0])
+        return jax.device_get(samples)
 
     return sample

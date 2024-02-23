@@ -53,8 +53,8 @@ from calvin_env.envs.play_table_env import get_env
 logger = logging.getLogger(__name__)
 
 if  int(os.getenv("DEBUG")):
-    EP_LEN = 100
-    NUM_SEQUENCES = 3
+    EP_LEN = 360
+    NUM_SEQUENCES = 1
 else:
     EP_LEN = 360
     NUM_SEQUENCES = int(os.getenv("NUM_EVAL_SEQUENCES"))
@@ -72,6 +72,23 @@ def make_env(dataset_path):
     return env
 
 
+# def get_agent_type(checkpoint_path):
+#     if "gcbc_diffusion" in checkpoint_path or "public" in checkpoint_path:
+#         return "gc_ddpm_bc"
+#     elif "gcbc" in checkpoint_path:
+#         return "gc_bc"
+#     elif "gciql2" in checkpoint_path:
+#         return "gc_iql2"
+#     elif "gciql3" in checkpoint_path:
+#         return "gc_iql3"
+#     elif "gciql4" in checkpoint_path:
+#         return "gc_iql4"
+#     elif "gciql5" in checkpoint_path:
+#         return "gc_iql5"
+#     elif "gciql" in checkpoint_path:
+#         return "gc_iql"
+#     else:
+#         raise ValueError(f"Cannot determine agent type from \"{checkpoint_path}\".")
 def get_agent_type(checkpoint_path):
 
     if "gcbc_diffusion" in checkpoint_path or "public" in checkpoint_path:
@@ -98,7 +115,7 @@ def get_agent_type(checkpoint_path):
 
 
 class CustomModel(CalvinBaseModel):
-    def __init__(self, use_temporal_ensembling, diffusion_model_checkpoint_path, gc_policy_checkpoint_path, gc_vf_checkpoint_path, num_denoising_steps, num_samples=1, diffusion_model_framework="jax"):
+    def __init__(self, use_temporal_ensembling, diffusion_model_checkpoint_path, gc_policy_checkpoint_path, gc_vf_checkpoint_path, num_denoising_steps, num_samples=1, hard_coded_goal_images_path=None, hard_coded_goal_idxs=None, diffusion_model_framework="jax"):
         # Initialize diffusion model
 
         self.num_samples = num_samples
@@ -159,13 +176,9 @@ class CustomModel(CalvinBaseModel):
         timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
 
         if self.num_samples > 1:
-            self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-4:], *gc_vf_checkpoint_path.replace("-", "/").split("/")[-2:], f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
-            ### Change to the below? -4: vs. -2:
-            # self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-4:], *gc_vf_checkpoint_path.replace("-", "/").split("/")[-4:], f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
+            self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], *gc_vf_checkpoint_path.replace("-", "/").split("/")[-2:], f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
         else:
-            self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-4:], "no_vf", "checkpoint_none", f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
-
-    
+            self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], "no_vf", "checkpoint_none", f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
         
         # Make sure name is right, and add seed 
 
@@ -184,7 +197,27 @@ class CustomModel(CalvinBaseModel):
         self.goal_image = None
         self.subgoal_counter = 0
         self.subgoal_max = 20
+        # self.subgoal_max = 30
         self.pbar = None
+
+
+        if hard_coded_goal_images_path is None:
+            self.hard_coded_goal_images = None 
+        else:
+            goal_images = np.load(hard_coded_goal_images_path)
+
+            assert hard_coded_goal_idxs is not None
+            idxs = [int(idx) for idx in hard_coded_goal_idxs.split(",")]
+            print("idxs:", idxs)
+            self.hard_coded_goal_images = goal_images[idxs]
+            
+            
+            np.save(os.path.join(self.log_dir, "hardcoded_goal_images.npy"), self.hard_coded_goal_images)
+
+            os.makedirs(os.path.join(self.log_dir, "hardcoded_goal_images"), exist_ok=True)
+            for i, img in enumerate(self.hard_coded_goal_images):
+                cv2.imwrite(os.path.join(self.log_dir, "hardcoded_goal_images", f"goal_image_{idxs[i]}.png"), img[..., ::-1])
+
 
     def save_info(self, success):
         episode_log_dir = os.path.join(self.log_dir, "ep" + str(self.episode_counter))
@@ -233,7 +266,19 @@ class CustomModel(CalvinBaseModel):
         # Log the actions
         np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
 
-        # Could also upload to S3 here if we want to 
+        np.save(os.path.join(episode_log_dir, "real_goal_images.npy"), np.array(self.real_goal_images[1:]))
+
+        np.save(os.path.join(episode_log_dir, "goal_images.npy"), np.array(self.goal_images_list))
+
+        for i, img in enumerate(self.real_goal_images[1:]):
+            cv2.imwrite(os.path.join(episode_log_dir, f"real_goal_image_{i}.png"), img[..., ::-1])
+            cv2.imwrite(os.path.join(episode_log_dir, f"goal_image_side{i}.png"), np.concatenate([img[..., ::-1], self.goal_images_list[i][..., ::-1]], axis=1))
+
+        
+        np.save(os.path.join(episode_log_dir, "real_images.npy"), np.array(self.obs_image_seq))
+        os.makedirs(os.path.join(episode_log_dir, "real_images"), exist_ok=True)
+        for i, img in enumerate(self.obs_image_seq):
+            cv2.imwrite(os.path.join(episode_log_dir, "real_images", f"real_image_{i}.png"), img[..., ::-1])
 
 
     def reset(self):
@@ -244,6 +289,9 @@ class CustomModel(CalvinBaseModel):
             self.vranked_goal_images_seq = []
             self.action_seq = []
             self.combined_images = []
+            self.real_goal_images = []
+            self.goal_images_list = []
+            self.hardcoded_goal_idx_counter = 0
         else:
             # episode_log_dir = os.path.join(self.log_dir, "ep" + str(self.episode_counter))
             # if not os.path.exists(episode_log_dir):
@@ -288,7 +336,10 @@ class CustomModel(CalvinBaseModel):
             self.action_seq = []
             self.goal_image = None
             self.combined_images = []
+            self.real_goal_images = []
+            self.goal_images_list = []
             self.subgoal_counter = 0
+            self.hardcoded_goal_idx_counter = 0
 
             # Reset the GC policy
             self.gc_policy.reset()
@@ -311,12 +362,22 @@ class CustomModel(CalvinBaseModel):
 
         # If we need to, generate a new goal image
         if self.goal_image is None or self.subgoal_counter >= self.subgoal_max:
-            t0 = time.time()
-            # self.goal_image = self.diffusion_model.generate(self.language_task, rgb_obs)
-            goal_images = self.diffusion_model.generate(self.language_task, rgb_obs)
-            t1 = time.time()
+            if self.hard_coded_goal_images is None:
+                t0 = time.time()
+                goal_images = self.diffusion_model.generate(self.language_task, rgb_obs)
+                t1 = time.time()
+                print(f"t1 - t0: {t1 - t0:.3f}")
+            else:
+                if self.hardcoded_goal_idx_counter >= self.hard_coded_goal_images.shape[0]:
+                    return -1
+
+                goal_images = self.hard_coded_goal_images[self.hardcoded_goal_idx_counter][None]
+
+                self.hardcoded_goal_idx_counter += 1
+
+
             self.subgoal_counter = 0
-            print(f"t1 - t0: {t1 - t0:.3f}")
+
 
             if self.num_samples > 1:
                 v = self.gc_vf.value_function_ranking(rgb_obs, goal_images)
@@ -327,6 +388,9 @@ class CustomModel(CalvinBaseModel):
             else:
                 assert goal_images.shape[0] == 1, f"goal_images.shape: {goal_images.shape}"
                 self.goal_image = goal_images[0]
+
+            self.real_goal_images.append(rgb_obs.copy())
+            self.goal_images_list.append(self.goal_image.copy())
 
         # Log the image observation and the goal image
         self.obs_image_seq.append(rgb_obs)
@@ -374,9 +438,76 @@ def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_
 
     eval_log_dir = get_log_dir(eval_log_dir)
 
-    eval_sequences = get_sequences(NUM_SEQUENCES)
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'left', 'drawer': 'closed', 'red_block': 'table', 'blue_block': 'slider_right', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_slider', 'place_in_slider', 'turn_on_lightbulb', 'open_drawer', 'push_pink_block_left')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'closed', 'red_block': 'table', 'blue_block': 'slider_left', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_slider', 'place_in_slider', 'open_drawer', 'rotate_red_block_right', 'turn_on_led')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'right', 'drawer': 'open', 'red_block': 'slider_left', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_slider', 'place_in_drawer', 'move_slider_left', 'turn_on_led', 'close_drawer')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'right', 'drawer': 'closed', 'red_block': 'slider_right', 'blue_block': 'slider_left', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_slider', 'place_in_slider', 'turn_on_led', 'open_drawer', 'rotate_pink_block_right')
+
+    initial_state = {'led': 0, 'lightbulb': 0, 'slider': 'left', 'drawer': 'open', 'red_block': 'slider_right', 'blue_block': 'table', 'pink_block': 'slider_left', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_slider', 'place_in_drawer', 'turn_on_led', 'move_slider_right', 'lift_red_block_drawer')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'slider_right', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_pink_block_table', 'place_in_drawer', 'rotate_red_block_left', 'move_slider_left', 'lift_pink_block_drawer')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_table', 'place_in_slider', 'turn_on_led', 'move_slider_left', 'close_drawer')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'left', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'slider_right', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_slider', 'place_in_drawer', 'rotate_red_block_left', 'turn_on_lightbulb', 'lift_red_block_table')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'left', 'drawer': 'open', 'red_block': 'slider_right', 'blue_block': 'table', 'pink_block': 'slider_left', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_slider', 'stack_block', 'close_drawer', 'unstack_block', 'push_red_block_left')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'closed', 'red_block': 'table', 'blue_block': 'slider_left', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_table', 'stack_block', 'open_drawer', 'unstack_block', 'push_pink_block_right')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'open', 'red_block': 'slider_right', 'blue_block': 'table', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_table', 'stack_block', 'close_drawer', 'unstack_block', 'rotate_pink_block_right')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'closed', 'red_block': 'slider_left', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_slider', 'stack_block', 'unstack_block', 'push_blue_block_left', 'lift_red_block_table')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'right', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_table', 'place_in_slider', 'move_slider_left', 'turn_on_led', 'rotate_blue_block_right')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'open', 'red_block': 'slider_right', 'blue_block': 'table', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_table', 'stack_block', 'close_drawer', 'unstack_block', 'rotate_pink_block_right')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'closed', 'red_block': 'slider_left', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_slider', 'stack_block', 'unstack_block', 'push_blue_block_left', 'lift_red_block_table')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'right', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_red_block_table', 'place_in_slider', 'move_slider_left', 'turn_on_led', 'rotate_blue_block_right')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'left', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'table', 'pink_block': 'slider_right', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_table', 'place_in_drawer', 'push_red_block_right', 'move_slider_right', 'turn_on_lightbulb')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'left', 'drawer': 'closed', 'red_block': 'slider_left', 'blue_block': 'slider_right', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_pink_block_table', 'place_in_slider', 'turn_on_led', 'move_slider_right', 'open_drawer')
+
+    # initial_state: {'led': 0, 'lightbulb': 0, 'slider': 'right', 'drawer': 'closed', 'red_block': 'slider_left', 'blue_block': 'table', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_blue_block_table', 'place_in_slider', 'turn_on_lightbulb', 'push_pink_block_right', 'open_drawer')
+
+    # initial_state: {'led': 0, 'lightbulb': 1, 'slider': 'right', 'drawer': 'open', 'red_block': 'table', 'blue_block': 'slider_left', 'pink_block': 'table', 'grasped': 0}
+    # eval_sequence: ('lift_pink_block_table', 'place_in_drawer', 'turn_off_lightbulb', 'lift_blue_block_slider', 'stack_block')
 
 
+    # eval_sequences = get_sequences(NUM_SEQUENCES)
+    # eval_sequences = get_sequences(100)
+    eval_sequences = [(initial_state, ("lift_red_block_slider",)) for _ in range(NUM_SEQUENCES)]
+
+    
+    # for init_state, eval_sequence in eval_sequences:
+    #     print("\ninitial_state:", init_state)
+    #     print("eval_sequence:", eval_sequence)
 
     results = []
     plans = defaultdict(list) 
@@ -443,7 +574,13 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
 
     for step in range(EP_LEN):
         action = model.step(obs, lang_annotation)
+
+        if isinstance(action, int) and action == -1:
+            print("Ran out of hard coded goal images")
+            break 
+
         obs, _, _, current_info = env.step(action)
+        rgb_obs = obs["rgb_obs"]["rgb_static"]
         if debug:
             img = env.render(mode="rgb_array")
             join_vis_lang(img, lang_annotation)
@@ -460,10 +597,16 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
             print(colored("success", "green"), end=" ")
             print("step:", step)
             print("current_task_info:", current_task_info)
+            model.real_goal_images.append(rgb_obs)
+            model.obs_image_seq.append(rgb_obs)
             model.save_info(True)
             return True
     if debug:
         print(colored("fail", "red"), end=" ")
+
+    
+    model.real_goal_images.append(rgb_obs)
+    model.obs_image_seq.append(rgb_obs)
     model.save_info(False)
     print(colored("fail", "red"), end=" ")
     return False
@@ -554,7 +697,13 @@ def main():
         "--num_samples", type=int, default=1, help="Use this option to evaluate a custom model architecture."
     )
 
+    parser.add_argument(
+        "--hard_coded_goal_images_path", type=str, default=None, help="Use this option to evaluate a custom model architecture."
+    )
 
+    parser.add_argument(
+        "--hard_coded_goal_idxs", type=str, default=None, help="Use this option to evaluate a custom model architecture."
+    )
 
     # parser.add_argument("--debug", action="store_true", help="Print debug info and visualize environment.")
     parser.add_argument("--debug", type=int, default=0)
@@ -571,12 +720,9 @@ def main():
     # torch.manual_seed(args.seed)
 
 
-
-    # timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
-
     # evaluate a custom model
     if args.custom_model:
-        model = CustomModel(args.use_temporal_ensembling, args.diffusion_model_checkpoint_path, args.gc_policy_checkpoint_path, args.gc_vf_checkpoint_path, args.num_denoising_steps, num_samples=args.num_samples, diffusion_model_framework=args.diffusion_model_framework)
+        model = CustomModel(args.use_temporal_ensembling, args.diffusion_model_checkpoint_path, args.gc_policy_checkpoint_path, args.gc_vf_checkpoint_path, args.num_denoising_steps, num_samples=args.num_samples, hard_coded_goal_images_path=args.hard_coded_goal_images_path, hard_coded_goal_idxs=args.hard_coded_goal_idxs, diffusion_model_framework=args.diffusion_model_framework)
         env = make_env(args.dataset_path)
         evaluate_policy(model, env, debug=args.debug, eval_log_dir=model.log_dir)
     else:

@@ -174,6 +174,15 @@ class GCIQLAgent(flax.struct.PyTreeNode):
         else:
             actions = dist.sample(seed=seed)
         return actions
+    
+    @jax.jit
+    def value_function(self, observations: np.ndarray, goals: np.ndarray):
+        v = self.state.apply_fn(
+            {"params": self.state.params},
+            (observations, goals),
+            name="value",
+        )
+        return v
 
     @jax.jit
     def get_debug_metrics(self, batch, gripper_close_val=None, **kwargs):

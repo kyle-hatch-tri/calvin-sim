@@ -109,8 +109,10 @@ AGENT_KWARGS = dict(gc_ddpm_bc=gc_ddpm_bc_kwargs,
 
 
 class GCPolicy:
-    def __init__(self, agent_type, use_temporal_ensembling=True):
+    def __init__(self, agent_type, resume_path, normalize_actions=False, use_temporal_ensembling=True):
         self.use_temporal_ensembling = use_temporal_ensembling
+
+        print("agent_type:", agent_type)
 
         # We need to first create a dataset object to supply to the agent
         train_paths = [[
@@ -146,12 +148,16 @@ class GCPolicy:
                     "random_hue",
                 ],
             ),
+            # normalize_actions=False if ("noactnorm" in self.agent_type or "nam" in self.agent_type)else True, # TODO better way to handle this
+            normalize_actions=normalize_actions,
             goal_relabeling_strategy="delta_goals",
             goal_relabeling_kwargs=dict(goal_delta=[0, 24]),
             relabel_actions=False,
             act_pred_horizon=act_pred_horizon,
             obs_horizon=obs_horizon,
         )
+
+        print("normalize_actions:", normalize_actions)
 
         ACT_MEAN = [
             2.9842544e-04,
@@ -246,6 +252,8 @@ class GCPolicy:
 
         # Next let's initialize the agent
 
+        print("agent_type:", self.agent_type)
+
         agent_kwargs = AGENT_KWARGS[self.agent_type]
         # agent_kwargs=dict(
         #     score_network_kwargs=dict(
@@ -288,7 +296,7 @@ class GCPolicy:
         )
 
         print("Loading checkpoint...") 
-        resume_path = os.getenv("GC_POLICY_CHECKPOINT")
+        # resume_path = os.getenv("GC_POLICY_CHECKPOINT")
         restored = orbax.checkpoint.PyTreeCheckpointer().restore(resume_path, item=agent)
         if agent is restored:
             raise FileNotFoundError(f"Cannot load checkpoint from {resume_path}")
@@ -308,6 +316,12 @@ class GCPolicy:
     def reset(self):
         self.action_buffer = np.zeros((4, 4, 7))
         self.action_buffer_mask = np.zeros((4, 4), dtype=bool)
+
+    def value_function_ranking(self, image_obs : np.ndarray, goal_images : np.ndarray):
+        assert len(goal_images.shape) == len(image_obs.shape) + 1
+        stacked_image_obs = np.repeat(image_obs[None], goal_images.shape[0], axis=0)
+        v = self.agent.value_function({"image" : stacked_image_obs}, {"image" : goal_images})
+        return np.array(v.tolist()) 
 
     def predict_action(self, image_obs : np.ndarray, goal_image : np.ndarray):
         if "ddpm" in self.agent_type:
