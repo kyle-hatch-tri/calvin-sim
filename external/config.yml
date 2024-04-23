@@ -1,0 +1,5 @@
+assets: /opt/ml/code/external/LIBERO/libero/libero/./assets
+bddl_files: /opt/ml/code/external/LIBERO/libero/libero/./bddl_files
+benchmark_root: /opt/ml/code/external/LIBERO/libero/libero
+datasets: /opt/ml/code/external/LIBERO/libero/libero/../datasets
+init_states: /opt/ml/code/external/LIBERO/libero/libero/./init_files

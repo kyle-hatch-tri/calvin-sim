@@ -3,6 +3,7 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 
+import time
 
 @jax.jit
 def q_sample(x_0, log_snr, noise):
@@ -90,9 +91,15 @@ def sample_step(
     batched_t = jnp.full(x.shape[0], t)
     batched_t_next = jnp.full(x.shape[0], t_next)
 
+    # t0 = time.time()
     uncond_pred = model_predict(state, x, uncond_y, uncond_prompt_embeds, batched_t)
     context_pred = model_predict(state, x, y, uncond_prompt_embeds, batched_t)
     prompt_pred = model_predict(state, x, y, prompt_embeds, batched_t)
+    # t1 = time.time()
+
+    # print(f"[sample_step] batch size: {x.shape[0]}. time: {t1 - t0:.3f}")
+    # jax.debug.print("[sample_step debug.print] batch_size: {batch_size}. time {t:.3f}", batch_size=x.shape[0], t=t1 - t0)
+
 
     pred_eps = (
         uncond_pred

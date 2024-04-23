@@ -1,0 +1,90 @@
+#!/bin/bash
+
+
+# 24053 total function_inputs 
+# each of length 64 
+# per sagemaker job, process 1600
+    # 200 per gpu 
+    # takes 200 * 64 * 17s = 217600s = 3626.6666666666665m = 60.44444444444444h = 2.5185185185185186 days
+
+# requires launching 15.033125 sagemaker jobs 
+
+# time this on sagemaker actually 
+ 
+# Okay so in order to preprocess 
+
+
+# bash launch_language_generated_calvin.sh 
+
+# Ask chat GPT to make a bash script to get the different between local ls and aws s3 ls, and then save this to a file or something, 
+# and upload it in chunks 
+    # Or could even just do it sequentially? Depending on how 
+
+
+# export DIFFUSION_MODEL_CHECKPOINT=/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_test/test1_400smthlib_2024.02.21_06.44.06/40000/params_ema
+
+
+
+# MACHINE_START_IDX=10
+# MACHINE_N_IDXS=18
+export DIFFUSION_MODEL_CHECKPOINT="/opt/ml/input/data/high_level"
+echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
+ls $DIFFUSION_MODEL_CHECKPOINT
+
+
+echo "MACHINE_START_IDX: $MACHINE_START_IDX"
+echo "MACHINE_N_IDXS: $MACHINE_N_IDXS"
+echo "NUM_SAMPLES: $NUM_SAMPLES"
+echo "S3_SAVE_URI: $S3_SAVE_URI"
+echo "DEBUG: $DEBUG"
+
+num_gpus=$(nvidia-smi -L | wc -l)
+
+
+if ((MACHINE_N_IDXS % num_gpus != 0)); then
+    echo "Error: MACHINE_N_IDXS is not evenly divisible by num_gpus"
+    exit 1
+fi
+
+
+step=$((MACHINE_N_IDXS / num_gpus))
+
+echo "num_gpus: $num_gpus"
+echo "step: $step"
+
+current_timestamp=$(date +"%Y_%m_%d_%H_%M_%S")
+mkdir -p results/stdouts/$current_timestamp
+
+
+for ((i=0; i<num_gpus; i++)); do
+    export CUDA_VISIBLE_DEVICES=$i
+
+    start_i=$((MACHINE_START_IDX + i * step))
+    end_i=$((start_i + step - 1))
+    echo "Processing GPU $i from start_i $start_i to end_i $end_i"
+    
+    python3 -u language_conditioned_calvin_generated_goals.py \
+    --start_i $start_i \
+    --end_i $end_i \
+    --s3_smart_load 0 \
+    --docker 1 \
+    --n_samples $NUM_SAMPLES \
+    --s3_dir $S3_SAVE_URI \
+    --debug $DEBUG \
+    2>&1 | tee "results/stdouts/$current_timestamp/stdout_and_sterr_$i.txt" &
+done
+
+wait 
+
+# aws s3 sync "/opt/ml/code/data/calvin_data_processed/language_conditioned_with_generated_${NUM_SAMPLES}_samples" $S3_SAVE_URI
+
+aws s3 sync "results/stdouts/$current_timestamp" "$S3_SAVE_URI/stdouts/$current_timestamp"
+
+# export CUDA_VISIBLE_DEVICES=0
+# python3 -u language_conditioned_calvin_generated_goals.py \
+# --start_i 0 \
+# --end_i 2 \
+# --s3_smart_load 0 \
+# --docker 1 \
+# --n_samples 4
+

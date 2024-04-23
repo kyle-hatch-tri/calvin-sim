@@ -72,26 +72,9 @@ def make_env(dataset_path):
     return env
 
 
-# def get_agent_type(checkpoint_path):
-#     if "gcbc_diffusion" in checkpoint_path or "public" in checkpoint_path:
-#         return "gc_ddpm_bc"
-#     elif "gcbc" in checkpoint_path:
-#         return "gc_bc"
-#     elif "gciql2" in checkpoint_path:
-#         return "gc_iql2"
-#     elif "gciql3" in checkpoint_path:
-#         return "gc_iql3"
-#     elif "gciql4" in checkpoint_path:
-#         return "gc_iql4"
-#     elif "gciql5" in checkpoint_path:
-#         return "gc_iql5"
-#     elif "gciql" in checkpoint_path:
-#         return "gc_iql"
-#     else:
-#         raise ValueError(f"Cannot determine agent type from \"{checkpoint_path}\".")
 def get_agent_type(checkpoint_path):
 
-    if "gcbc_diffusion" in checkpoint_path or "public" in checkpoint_path:
+    if "diffusion" in checkpoint_path or "public" in checkpoint_path:
         agent_type = "gc_ddpm_bc"
     elif "gcbc" in checkpoint_path:
         agent_type = "gc_bc"
@@ -176,9 +159,15 @@ class CustomModel(CalvinBaseModel):
         timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
 
         if self.num_samples > 1:
-            self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], *gc_vf_checkpoint_path.replace("-", "/").split("/")[-2:], f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
+            if "seed" in gc_policy_checkpoint_path:
+                self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-5:], *gc_vf_checkpoint_path.replace("-", "/").split("/")[-2:], f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
+            else:
+                self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], *gc_vf_checkpoint_path.replace("-", "/").split("/")[-2:], f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
         else:
-            self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], "no_vf", "checkpoint_none", f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
+            if "seed" in gc_policy_checkpoint_path:
+                self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-5:], "no_vf", "checkpoint_none", f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
+            else:
+                self.log_dir = os.path.join(self.log_dir,  *gc_policy_checkpoint_path.replace("-", "/").split("/")[-2:], "no_vf", "checkpoint_none", f"{num_denoising_steps}_denoising_steps", f"{num_samples}_samples", ensemb_str, timestamp)
         
         # Make sure name is right, and add seed 
 
@@ -503,6 +492,9 @@ def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_
     # eval_sequences = get_sequences(NUM_SEQUENCES)
     # eval_sequences = get_sequences(100)
     eval_sequences = [(initial_state, ("lift_red_block_slider",)) for _ in range(NUM_SEQUENCES)]
+
+
+    eval_sequences
 
     
     # for init_state, eval_sequence in eval_sequences:

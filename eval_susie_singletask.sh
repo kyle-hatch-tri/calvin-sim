@@ -25,9 +25,9 @@ export PYTHONPATH="/home/kylehatch/Desktop/hidql/calvin-sim/external/networkx:$P
 # export NUM_EVAL_SEQUENCES=10
 
 export DIFFUSION_MODEL_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/diffusion_model/jax_model/public_checkpoint/only_checkpoint/params_ema"
-export GC_POLICY_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/gc_policy/public_checkpoint/only_checkpoint"
-# export GC_POLICY_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/gc_policy/gcbc_20240121_001822/checkpoint_1538000"
-# export GC_POLICY_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/gc_policy/gciql_20240121_012712/checkpoint_1538000"
+# export GC_POLICY_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/gc_policy/public_checkpoint/only_checkpoint"
+# export GC_POLICY_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/gc_policy/gcbc_diffusion_nam_20240201_014718/checkpoint_140000"
+export GC_POLICY_CHECKPOINT="/home/kylehatch/Desktop/hidql/experiments/jax_model/public_checkpoint/only_checkpoint/gcbc_diffusion_nam_diffaug/seed_42/20240225_053306/checkpoint_50000"
 export GC_VF_CHECKPOINT="/home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/gc_policy/gciql_20240121_012712/checkpoint_1538000"
 
 export WANDB_API_KEY="65915e3ae3752bc3ddc4b7eef1b066067b9d1cb1"
@@ -39,7 +39,7 @@ export WANDB_ENTITY="tri"
 
 
 export CUDA_VISIBLE_DEVICES=0
-export NUM_EVAL_SEQUENCES=10
+export NUM_EVAL_SEQUENCES=100
 
 hard_coded_goal_images_path="/home/kylehatch/Desktop/hidql/oracle_goals/jax_model/public_checkpoint/only_checkpoint/public_checkpoint/only_checkpoint/no_vf/no_checkpoint/50_denoising_steps/1_samples/tmpensb/2024.02.13_14.51.30/ep2/real_images.npy"
 hard_coded_goal_idxs="19,39,59,78,78,78"
@@ -56,13 +56,12 @@ fi
 
 echo "diffusion_model_framework: $diffusion_model_framework"
 
-export DEBUG=1
+export DEBUG=0
 
 echo $PYTHONPATH
 
-# python3 -u calvin_models/calvin_agent/evaluation/evaluate_policy_subgoal_diffusion.py \
-# python3 -u evaluate_policy_subgoal_diffusion_singletask.py \
-python3 -u evaluate_policy_subgoal_diffusion.py \
+
+python3 -u evaluate_policy_subgoal_diffusion_singletask.py \
 --dataset_path mini_dataset \
 --custom_model 1 \
 --diffusion_model_checkpoint_path $DIFFUSION_MODEL_CHECKPOINT \

@@ -1,0 +1,115 @@
+WIN COUNTS
+	goal image 0: 3
+	goal image 1: 3
+	goal image 2: 3
+	goal image 3: 2
+\nTotal query time: 14.601s.
+
+
+
+
+============================== goal images (0, 1) ==============================
+timestep_dir: /home/kylehatch/Desktop/hidql/results/single_task/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/chat_gpt_dummy_filter_4s_2024.04.10_15.47.24/ep31/unfiltered_goal_images/timestep_240
+language goal: "slide the block that it falls into the drawer".
+Query time: 11.524s, 2.391s.
+> Based on the provided description and the analysis of the image observation and the two goal images, it is important to look for inconsistencies that involve the position and appearance of the robot arm and gripper, as well as the block, which the robot is tasked to manipulate.
+
+In the image observation, the robot's gripper is located near the middle of the table, the purple and white objects are positioned on the desk, and there is a red object on the ground.
+
+Both goal images show the robot gripper in very similar positions to each other, pointing slightly in the direction of the red object. The positions of the purple and white objects remain consistent with the image observation, and the red object retains its position on the floor.
+
+Upon careful examination:
+- The first goal image appears to have no additional objects, no major shifts in object shape or color, and maintains general consistency with the image observation.
+- The second goal image has the same characteristics as the first, with no visible hallucinations, or significant changes in shape or color of the relevant objects.
+
+Conclusion:
+Based on the details in the images, both goal images seem to maintain essential consistency with the image observation without introducing harmful inconsistencies. Hence, there is "Same" significant difference between the level of relevant/harmful inconsistencies in the goal images. Both are equally likely to guide the robot without causing confusion, assuming that there are no subtle changes not visible in the provided images. 
+
+> Same
+
+
+============================== goal images (0, 2) ==============================
+timestep_dir: /home/kylehatch/Desktop/hidql/results/single_task/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/chat_gpt_dummy_filter_4s_2024.04.10_15.47.24/ep31/unfiltered_goal_images/timestep_240
+language goal: "slide the block that it falls into the drawer".
+Query time: 12.197s, 2.370s.
+> Based on the analysis of the image observation and the two goal images:
+
+In the image observation, we see a white robot arm positioned above a drawer, with differently colored objects (a purple block and a red shape) on the table, and a small sphere-like object on a pedestal to the right.
+
+**Goal Image 1 (described as the second image above):** This image shows the robot arm in a different position, slightly shifted while still oriented above the drawer. The positions of the purple block and red shape relative to other objects are consistent with the image observation. No new objects appear, and there are no noticeable changes in the shapes or colors of the objects that relate directly to the task.
+
+**Goal Image 2 (described as the third image above):** This goal image, like the first, shows the robot arm moved but still above the drawer. The purple block and red shape maintain their relative positions from the image observation, again with no new objects introduced and no significant alterations in object shapes or colors.
+
+Both goal images show appropriate guidance based on the status visible in the image observation. **Neither goal image introduces harmful hallucinations or relevant changes in object shape or color** that could likely confuse the robot in its task. Thus, both are comparable in their reliability, and the use of either image should effectively aid the robot in progressing towards the task completion without introducing confusion.
+
+Therefore, the answer is **Same**, as there is no significant difference between the level of relevant/harmful inconsistencies in the two goal images.
+ 
+
+> Same
+
+
+============================== goal images (0, 3) ==============================
+timestep_dir: /home/kylehatch/Desktop/hidql/results/single_task/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/chat_gpt_dummy_filter_4s_2024.04.10_15.47.24/ep31/unfiltered_goal_images/timestep_240
+language goal: "slide the block that it falls into the drawer".
+Query time: 10.298s, 3.733s.
+> Based on the analysis of the images provided:
+
+1. **Image Observation**: The robot's gripper is positioned above a drawer, near a magenta and a red object on the tabletop. A white object is present near the back of the table.
+
+2. **First Goal Image**: The robot’s gripper and arm are in a slightly different position, moved slightly to the right but are still primarily above the drawer. The objects appear in consistent positions and colors as the observation image.
+
+3. **Second Goal Image**: Similar to the first goal image, the robot’s arm and gripper are slightly moved, positioned roughly the same as in the first goal image. The objects remain in their expected positions with consistent colors as seen in the observation image.
+
+Both goal images appear very similar and maintain consistency regarding the positions and colors of the objects relevant to the task. There are no new objects introduced (no hallucinations), and there are no significant changes in the shapes or colors of the objects. Therefore, both goal images seem to have a similar and low likelihood of containing harmful inconsistencies.
+
+**Answer: Same** - There is no significant difference between the level of relevant/harmful inconsistencies in the first and second goal images compared to the image observation, which would cause the robot to become confused. 
+
+> Same
+
+
+============================== goal images (1, 2) ==============================
+timestep_dir: /home/kylehatch/Desktop/hidql/results/single_task/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/chat_gpt_dummy_filter_4s_2024.04.10_15.47.24/ep31/unfiltered_goal_images/timestep_240
+language goal: "slide the block that it falls into the drawer".
+Query time: 11.374s, 2.651s.
+> Based on the description and the images provided, the First goal image seems to be least likely to contain relevant/harmful inconsistencies with the image observation that would cause the robot to become confused. This conclusion is drawn from analyzing the changes between the image observation and both goal images:
+
+1. **First Goal Image**: The positions of the objects and the robot appear mostly consistent with the image observation. There are no new objects introduced, and the objects maintain their shape and color. The robot arm is also positioned in a similar, though slightly adjusted, manner which seems logical for the task progression.
+
+2. **Second Goal Image**: This image is very similar to the first goal image but any subtle differences not visible in this view could still potentially impact the robot's task execution. However, from what's visible, it also seems mostly consistent with the observation image. The positions and colors of the objects remain true to the image observation, with appropriate adjustments for task progression.
+
+Given that both goal images appear quite similar and do not show any obvious inconsistencies like hallucinated objects or changes in color or shape of the objects that could confuse the robot, they both appear to be useful for guiding the robot. If there must be a choice, the First goal image is indicated only slightly over the Second due to identical visible information and assuming less risk of hidden or minimal changes not discernible from the provided perspectives. 
+
+> Same
+
+
+============================== goal images (1, 3) ==============================
+timestep_dir: /home/kylehatch/Desktop/hidql/results/single_task/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/chat_gpt_dummy_filter_4s_2024.04.10_15.47.24/ep31/unfiltered_goal_images/timestep_240
+language goal: "slide the block that it falls into the drawer".
+Query time: 10.134s, 2.239s.
+> Considering the image observation and the two goal images provided, evaluating for relevant or harmful inconsistencies involves checking for hallucinated objects, as well as significant changes in object shape or color that might cause confusion for the robot during task execution.
+
+Upon evaluation:
+1. **Image Observation**: Features a purple block and a white sphere on the tabletop, with a red block on the lower platform.
+2. **First Goal Image**: Shows the same objects as the image observation with no additional elements. The positions of the objects and the robot gripper appear similar to the image observation.
+3. **Second Goal Image**: Matches the first goal image and the image observation without any new elements added. Similar to the first goal image, the positioning of the objects and the robot elements remain consistent with the image observation.
+
+Considering both goal images maintain the object continuity and show no addition or distortion of objects, both goal images display consistency with the image observation without any harmful or relevant inconsistencies. Therefore, both images are equally likely to guide the robot correctly with minimal potential for confusion. Thus, the answer to which of the two goal images is least likely to contain relevant or harmful inconsistencies with the image observation would be "Same," as both goal images are consistent with the image observation. 
+
+> Same
+
+
+============================== goal images (2, 3) ==============================
+timestep_dir: /home/kylehatch/Desktop/hidql/results/single_task/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/chat_gpt_dummy_filter_4s_2024.04.10_15.47.24/ep31/unfiltered_goal_images/timestep_240
+language goal: "slide the block that it falls into the drawer".
+Query time: 10.168s, 3.725s.
+> In comparing the goal images to the image observation, it appears that the **First** goal image is least likely to contain relevant/harmful inconsistencies with the image observation that would cause the robot to become confused.
+
+In the **First** goal image (second image you provided), the positions and orientations of the objects are largely consistent with the image observation, with natural changes in the robot arm's position and the drawer being slightly more open, which directly relates to the task of "sliding the block so that it falls into the drawer."
+
+The **Second** goal image (third image provided), while visually quite similar to the first, must be carefully examined for subtle discrepancies that might affect task performance. In this case, it still seems valid as it too shows the drawer in a slightly more open position with otherwise consistent object placement.
+
+Both goal images seem to perform similarly well with respect to the outlined task, with no major shifts in color or shape, or introduction of new, irrelevant objects. Given the similarity and the absence of harmful inconsistencies in both, they both seem effective in guiding the robot's actions to achieve the task. However, sticking strictly to what's needed, the **First** goal image narrowly edges out simply due to presentational consistency observed at this level of detail. 
+
+> First
+
+

@@ -1,0 +1,70 @@
+
+echo "WANDB_API_KEY: $WANDB_API_KEY"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+echo "NUM_EVAL_SEQUENCES: $NUM_EVAL_SEQUENCES"
+echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
+echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
+echo "DIFFUSION_MODEL_CHECKPOINT_PATH: $DIFFUSION_MODEL_CHECKPOINT_PATH"
+echo "GC_POLICY_CHECKPOINT_PATH: $GC_POLICY_CHECKPOINT_PATH"
+echo "GC_VF_CHECKPOINT_PATH: $GC_VF_CHECKPOINT_PATH"
+echo "DIFFUSION_MODEL_FRAMEWORK: $DIFFUSION_MODEL_FRAMEWORK"
+echo "SAVE_TO_S3: $SAVE_TO_S3"
+echo "S3_SAVE_URI: $S3_SAVE_URI"
+echo "NUM_DENOISING_STEPS: $NUM_DENOISING_STEPS"
+echo "NUM_SAMPLES: $NUM_SAMPLES"
+echo "USE_TEMPORAL_ENSEMBLING: $USE_TEMPORAL_ENSEMBLING"
+echo "DEBUG: $DEBUG"
+
+export DIFFUSION_MODEL_CHECKPOINT="$DIFFUSION_MODEL_CHECKPOINT-$DIFFUSION_MODEL_CHECKPOINT_PATH"
+echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
+
+
+
+
+echo "MULTI MODE"
+base_gc_policy_checkpoint=$GC_POLICY_CHECKPOINT
+base_gc_vf_checkpoint=$GC_VF_CHECKPOINT
+IFS=',' read -r -a low_level_checkpoints <<< "$GC_POLICY_CHECKPOINT_PATH"
+IFS=',' read -r -a low_level_vf_checkpoints <<< "$GC_VF_CHECKPOINT_PATH"
+
+for i in "${!low_level_checkpoints[@]}"
+do
+    echo "low_level_checkpoints[$i]: ${low_level_checkpoints[i]}"
+    echo "low_level_vf_checkpoints[$i]: ${low_level_vf_checkpoints[i]}"
+    export CUDA_VISIBLE_DEVICES=$i 
+    echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+    
+    export GC_POLICY_CHECKPOINT="$base_gc_policy_checkpoint-${low_level_checkpoints[i]}"
+    echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
+
+    export GC_VF_CHECKPOINT="$base_gc_vf_checkpoint-${low_level_vf_checkpoints[i]}"
+    echo "GC_VF_CHECKPOINT: $GC_VF_CHECKPOINT"
+
+    # Use temporal ensembling for diffusion policies, otherwise don't use it 
+    if [[ "$GC_POLICY_CHECKPOINT" == *"gcbc_diffusion"* ]]; then
+        use_temporal_ensembling="1"
+    elif [[ "$GC_POLICY_CHECKPOINT" == *"public"* ]]; then
+        use_temporal_ensembling="1"
+    else
+        use_temporal_ensembling="0"
+    fi
+
+    echo "use_temporal_ensembling: $use_temporal_ensembling"
+
+
+    python3 -u evaluate_policy_subgoal_diffusion.py \
+    --dataset_path mini_dataset \
+    --custom_model 1 \
+    --diffusion_model_checkpoint_path $DIFFUSION_MODEL_CHECKPOINT_PATH \
+    --gc_policy_checkpoint_path ${low_level_checkpoints[i]} \
+    --gc_vf_checkpoint_path ${low_level_vf_checkpoints[i]} \
+    --diffusion_model_framework $DIFFUSION_MODEL_FRAMEWORK \
+    --save_to_s3 $SAVE_TO_S3 \
+    --s3_save_uri $S3_SAVE_URI \
+    --use_temporal_ensembling $use_temporal_ensembling \
+    --num_denoising_steps $NUM_DENOISING_STEPS \
+    --num_samples $NUM_SAMPLES &
+done
+
+wait

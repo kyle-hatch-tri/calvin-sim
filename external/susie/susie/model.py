@@ -277,6 +277,30 @@ def create_sample_fn(
         if num_samples > 1:
             image = np.repeat(image, num_samples, axis=0)
 
+        # batched sampling 
+        # image = image / 127.5 - 1.0
+
+        # if len(image.shape) == 3:
+        #     image = image[None]
+        #     assert image.shape == (1, 256, 256, 3)
+
+        #     prompt_embeds = text_encode(tokenize([prompt for _ in range(num_samples)]))
+        #     uncond_prompt_embed = text_encode(tokenize(["" for _ in range(num_samples)]))  # (num_samples, 77, 768)
+
+        #     if num_samples > 1:
+        #         image = np.repeat(image, num_samples, axis=0)
+        # else:
+        #     assert len(image.shape) == 4
+        #     assert num_samples == 1, f"num_samples: {num_samples}"
+        #     batch_size = image.shape[0]
+
+        #     prompt_embeds = text_encode(tokenize([prompt for _ in range(batch_size)]))
+        #     uncond_prompt_embed = text_encode(tokenize(["" for _ in range(batch_size)]))  # (num_samples, 77, 768)
+
+        
+
+            
+
         # encode stuff
         rng, encode_rng = jax.random.split(rng)
         contexts = vae_encode(encode_rng, image, scale=False)
@@ -287,7 +311,7 @@ def create_sample_fn(
         # print("image.shape:", image.shape)
         # print("x:", x)
         # print("prompt_embeds.shape:", prompt_embeds.shape)
-        
+        t0 = time.time()
         samples = sample_loop(
             sample_rng,
             state,
@@ -300,8 +324,104 @@ def create_sample_fn(
             uncond_y=jnp.zeros_like(contexts),
             uncond_prompt_embeds=uncond_prompt_embed,
         )
+        t1 = time.time()
+        # print(f"batch size: {contexts.shape[0]}. time: {t1 - t0:.3f}")
+
 
         samples = vae_decode(samples)
+        samples = jnp.clip(jnp.round(samples * 127.5 + 127.5), 0, 255).astype(jnp.uint8)
+
+        return jax.device_get(samples)
+
+        # # rng, decode_rng = jax.random.split(rng)
+        # # normal_noise = jax.random.normal(decode_rng, shape=contexts.shape)
+        # # encode_decode = vae_decode(normal_noise)
+
+        # # encode_decode = vae_decode(contexts)
+        # encode_decode = vae_decode(contexts, scale=False)
+        # encode_decode = jnp.clip(jnp.round(encode_decode * 127.5 + 127.5), 0, 255).astype(jnp.uint8)
+
+        # return jax.device_get(samples), jax.device_get(encode_decode)
+
+    return sample
+
+
+
+
+
+def create_vae_encode_decode_fn(
+    path: str,
+    wandb_run_name: Optional[str] = None,
+    eta: float = 0.0,
+    pretrained_path: str = "runwayml/stable-diffusion-v1-5:flax",
+    noise_scale: float = 0,
+    num_samples: int = 1,
+) -> Callable[[np.ndarray, str], np.ndarray]:
+    if (
+        os.path.exists(path)
+        and os.path.isdir(path)
+        and "checkpoint" in os.listdir(path)
+    ):
+        # this is an orbax checkpoint
+        assert wandb_run_name is not None
+        # load config from wandb
+        api = wandb.Api()
+        run = api.run(wandb_run_name)
+        config = ml_collections.ConfigDict(run.config)
+
+        # load params
+        params = orbax.checkpoint.PyTreeCheckpointer().restore(path, item=None)
+        assert "params_ema" not in params
+
+        # load model
+        model_def = create_model_def(config.model)
+    else:
+        # assume this is in HuggingFace format
+        model_def, params = load_pretrained_unet(path, in_channels=8)
+
+        # hardcode scheduling config to be "scaled_linear" (used by Stable Diffusion)
+        config = {"scheduling": {"noise_schedule": "scaled_linear"}}
+
+    state = EmaTrainState(
+        step=0,
+        apply_fn=model_def.apply,
+        params=None,
+        params_ema=params,
+        tx=None,
+        opt_state=None,
+    )
+    del params
+
+    # load encoders
+    vae_encode, vae_decode = load_vae(pretrained_path)
+
+    rng = jax.random.PRNGKey(int(time.time()))
+
+    def sample(image, noise_scale=noise_scale, num_samples=num_samples):
+        nonlocal rng
+
+        image = image / 127.5 - 1.0
+        image = image[None]
+        assert image.shape == (1, 256, 256, 3)
+
+        if num_samples > 1:
+            image = np.repeat(image, num_samples, axis=0)
+            
+
+        # encode stuff
+        rng, encode_rng = jax.random.split(rng)
+        contexts = vae_encode(encode_rng, image, scale=False)
+
+        rng, sample_rng = jax.random.split(rng)
+
+        if noise_scale > 0:
+            rng, noise_rng = jax.random.split(rng)
+            normal_noise = jax.random.normal(noise_rng, shape=contexts.shape)
+            normal_noise *= noise_scale
+            contexts += normal_noise
+
+        # decode stuff
+        samples = vae_decode(contexts, scale=False)
         samples = jnp.clip(jnp.round(samples * 127.5 + 127.5), 0, 255).astype(jnp.uint8)
 
         # return jax.device_get(samples[0])

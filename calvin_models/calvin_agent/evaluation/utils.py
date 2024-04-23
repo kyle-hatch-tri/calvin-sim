@@ -15,6 +15,7 @@ from numpy import pi
 from omegaconf import OmegaConf
 import pyhash
 import torch
+import pickle
 
 hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)
@@ -84,6 +85,18 @@ def count_success(results):
     return step_success
 
 
+
+def pickle_object(file_path, obj):
+    """
+    Save an object to a file using pickle.
+
+    Parameters:
+    - obj: The object to be saved.
+    - file_path (str): Path to the file where the object will be saved.
+    """
+    with open(file_path, 'wb') as file:
+        pickle.dump(obj, file)
+
 def print_and_save(results, sequences, log_dir, epoch=None):
     current_data = {}
     print(f"Results for Epoch {epoch}:")
@@ -94,12 +107,14 @@ def print_and_save(results, sequences, log_dir, epoch=None):
     for i, sr in chain_sr.items():
         print(f"{i}: {sr * 100:.1f}%")
 
-
     with open(log_dir / "results.txt", "w") as f:
         f.write(f"Average successful sequence length: {avg_seq_len}\n")
         f.write("Success rates for i instructions in a row:\n")
         for i, sr in chain_sr.items():
             f.write(f"{i}: {sr * 100:.1f}%\n")
+
+    np.save(log_dir / "results.npy", np.array(results))
+    pickle_object(log_dir / "sequences.pkl", list(sequences))
 
     cnt_success = Counter()
     cnt_fail = Counter()
@@ -135,7 +150,6 @@ def print_and_save(results, sequences, log_dir, epoch=None):
         f"Best model: epoch {max(json_data, key=lambda x: json_data[x]['avg_seq_len'])} "
         f"with average sequences length of {max(map(lambda x: x['avg_seq_len'], json_data.values()))}"
     )
-
 
 def create_tsne(plan_dict, log_dir, epoch):
     ids, labels, plans, latent_goals = zip(

@@ -28,6 +28,8 @@ ENV CUDNN_VERSION=8.2.1.32-1+cuda11.3
 ENV NCCL_VERSION=2.9.9-1+cuda11.3
 ENV DEBIAN_FRONTEND=noninteractive
 
+# RUN apt update 
+
 # Install basic libraries
 RUN apt-get update && apt-get install -y \
     build-essential cmake git curl docker.io vim wget ca-certificates
@@ -370,6 +372,7 @@ ENV EXTERNAL="${WORKSPACE}/external"
 # COPY ../susie $EXTERNAL
 ENV PYTHONPATH="${EXTERNAL}/susie:$PYTHONPATH"
 ENV PYTHONPATH="${EXTERNAL}/jaxrl_m:$PYTHONPATH"
+ENV PYTHONPATH="${EXTERNAL}/LIBERO:$PYTHONPATH"
 
 ENV PYTHONPATH="${WORKSPACE}/calvin_models:$PYTHONPATH"
 ENV PYTHONPATH="${WORKSPACE}/calvin_env:$PYTHONPATH"
@@ -472,8 +475,11 @@ RUN alias p3=python3
 # ENV SAGEMAKER_PROGRAM="${WORKSPACE}/train.py"
 # ENV SAGEMAKER_PROGRAM="${WORKSPACE}/evaluate_policy_subgoal_diffusion.py"
 
+# RUN apt-get update
 
-RUN apt install -y libnvidia-gl-525-server
+# RUN apt install -y libnvidia-gl-525-server
+RUN apt install -y libnvidia-gl-525
+# RUN apt-get install -y libnvidia-gl-525-server
 RUN apt install ffmpeg
 
 # pip install --ugprade networkx
@@ -483,8 +489,15 @@ RUN pip install pybullet==3.2.6
 
 RUN pip install protobuf==3.20
 
+# RUN pip install tensorflow_hub==0.15.0
+# RUN pip install tensorflow_text==2.13.0
 
 RUN python3 -u download_models.py 
 
+RUN mkdir -p ~/.libero
 
-
+RUN echo -e "assets: /opt/ml/code/external/LIBERO/libero/libero/./assets\n\
+bddl_files: /opt/ml/code/external/LIBERO/libero/libero/./bddl_files\n\
+benchmark_root: /opt/ml/code/external/LIBERO/libero/libero\n\
+datasets: /opt/ml/code/external/LIBERO/libero/libero/../datasets\n\
+init_states: /opt/ml/code/external/LIBERO/libero/libero/./init_files" > ~/.libero/config.yaml

@@ -6,6 +6,8 @@ from .continuous.iql import IQLAgent
 from .continuous.lc_bc import LCBCAgent
 from .continuous.stable_contrastive_rl import StableContrastiveRLAgent
 
+from .continuous.gc_discriminator import GCDiscriminatorAgent
+
 agents = {
     "gc_bc": GCBCAgent,
     "lc_bc": LCBCAgent,
@@ -14,4 +16,5 @@ agents = {
     "bc": BCAgent,
     "iql": IQLAgent,
     "stable_contrastive_rl": StableContrastiveRLAgent,
+    "gc_discriminator": GCDiscriminatorAgent,
 }

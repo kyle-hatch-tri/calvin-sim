@@ -343,6 +343,8 @@ def get_sequences_for_state2(args):
     return results
 
 
+
+
 def flatten(t):
     return [tuple(item.tolist()) for sublist in t for item in sublist]
 

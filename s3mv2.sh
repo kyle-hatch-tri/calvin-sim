@@ -12,3 +12,4 @@ aws s3 cp --recursive s3://kyle-sagemaker-training-outputs/eval-outputs/jax_mode
 
 
 
+aws s3 cp --recursive s3://kyle-sagemaker-training-outputs/susie_gc_low_level/gcbc_diffusion_nam_diffaug/ s3://kyle-sagemaker-training-outputs/susie_gc_low_level/diffusion_ng/

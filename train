@@ -1,52 +1,77 @@
 
 echo "WANDB_API_KEY: $WANDB_API_KEY"
+echo "WANDB_ENTITY: $WANDB_ENTITY"
 echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+# echo "ENVIRONMENT: $ENVIRONMENT"
+echo "AGENT_CONFIG_STRING: $AGENT_CONFIG_STRING"
 echo "NUM_EVAL_SEQUENCES: $NUM_EVAL_SEQUENCES"
-echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
-echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
 echo "DIFFUSION_MODEL_CHECKPOINT_PATH: $DIFFUSION_MODEL_CHECKPOINT_PATH"
-echo "GC_POLICY_CHECKPOINT_PATH: $GC_POLICY_CHECKPOINT_PATH"
-echo "GC_VF_CHECKPOINT_PATH: $GC_VF_CHECKPOINT_PATH"
-echo "DIFFUSION_MODEL_FRAMEWORK: $DIFFUSION_MODEL_FRAMEWORK"
+echo "GC_POLICY_CHECKPOINT_PATHS: $GC_POLICY_CHECKPOINT_PATHS"
 echo "SAVE_TO_S3: $SAVE_TO_S3"
 echo "S3_SAVE_URI: $S3_SAVE_URI"
 echo "NUM_DENOISING_STEPS: $NUM_DENOISING_STEPS"
 echo "NUM_SAMPLES: $NUM_SAMPLES"
-echo "USE_TEMPORAL_ENSEMBLING: $USE_TEMPORAL_ENSEMBLING"
-echo "DEBUG: $DEBUG"
+echo "EP_LEN: $EP_LEN"
+echo "NUM_SAMPLES: $NUM_SAMPLES"
+echo "SUBGOAL_MAX: $SUBGOAL_MAX"
+echo "FLAT_POLICY: $FLAT_POLICY"
 
-export DIFFUSION_MODEL_CHECKPOINT="$DIFFUSION_MODEL_CHECKPOINT-$DIFFUSION_MODEL_CHECKPOINT_PATH"
+
+
+export DIFFUSION_MODEL_CHECKPOINT="/opt/ml/input/data/high_level"
 echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
 
+# export MUJOCO_EGL_DEVICE_ID="-1"
 
 
 
-echo "MULTI MODE"
-base_gc_policy_checkpoint=$GC_POLICY_CHECKPOINT
-base_gc_vf_checkpoint=$GC_VF_CHECKPOINT
-IFS=',' read -r -a low_level_checkpoints <<< "$GC_POLICY_CHECKPOINT_PATH"
-IFS=',' read -r -a low_level_vf_checkpoints <<< "$GC_VF_CHECKPOINT_PATH"
+# IFS=',' read -r -a low_level_checkpoints <<< "$GC_POLICY_CHECKPOINT_PATHS"
 
-for i in "${!low_level_checkpoints[@]}"
-do
-    echo "low_level_checkpoints[$i]: ${low_level_checkpoints[i]}"
-    echo "low_level_vf_checkpoints[$i]: ${low_level_vf_checkpoints[i]}"
+
+num_gpus=$(nvidia-smi -L | wc -l)
+echo "NUM_LOW_LEVEL_CHECKPOINTS: $NUM_LOW_LEVEL_CHECKPOINTS"
+echo "num_gpus: $num_gpus"
+
+if [[ ( "$NUM_LOW_LEVEL_CHECKPOINTS" > $num_gpus ) ]]; then
+    echo "Too many seeds"
+        exit 125
+fi 
+
+current_timestamp=$(date +"%Y_%m_%d_%H_%M_%S")
+mkdir -p results/stdouts/$current_timestamp
+
+
+
+
+# for i in "${!low_level_checkpoints[@]}"
+for ((i=0; i<$NUM_LOW_LEVEL_CHECKPOINTS; i++)); do
     export CUDA_VISIBLE_DEVICES=$i 
-    echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+    echo "[$i] CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+    # echo "low_level_checkpoints[$i]: ${low_level_checkpoints[i]}"
+
+    var="GC_POLICY_CHECKPOINT_PATH_$i"
+    low_level_checkpoint="${!var}"
+    
+    echo "low_level_checkpoint: $low_level_checkpoint"
+    echo "var: $var"
+    
+
+
+    # IFS='|' read -r -a low_level_checkpoint_split <<< "${low_level_checkpoints[i]}"
+    IFS='|' read -r -a low_level_checkpoint_split <<< $low_level_checkpoint
+    gc_policy_checkpoint=${low_level_checkpoint_split[0]}
+    gc_policy_checkpoint_path=${low_level_checkpoint_split[1]}
 
     
-    export GC_POLICY_CHECKPOINT="$base_gc_policy_checkpoint-${low_level_checkpoints[i]}"
+    export GC_POLICY_CHECKPOINT="/opt/ml/input/data/$gc_policy_checkpoint"
     echo "GC_POLICY_CHECKPOINT: $GC_POLICY_CHECKPOINT"
 
-    export GC_VF_CHECKPOINT="$base_gc_vf_checkpoint-${low_level_vf_checkpoints[i]}"
-    echo "GC_VF_CHECKPOINT: $GC_VF_CHECKPOINT"
+    echo "gc_policy_checkpoint_path: $gc_policy_checkpoint_path"
 
     # Use temporal ensembling for diffusion policies, otherwise don't use it 
-    if [[ "$GC_POLICY_CHECKPOINT" == *"gcbc_diffusion"* ]]; then
+    if [[ "$gc_policy_checkpoint_path" == *"diffusion"* ]] || [[ "$gc_policy_checkpoint_path" == *"public"* ]]; then
         use_temporal_ensembling="1"
-    elif [[ "$GC_POLICY_CHECKPOINT" == *"public"* ]]; then
-        use_temporal_ensembling="1"
-    else 
+    else
         use_temporal_ensembling="0"
     fi
 
@@ -54,17 +79,55 @@ do
 
 
     python3 -u evaluate_policy_subgoal_diffusion.py \
+    --agent_config_string $AGENT_CONFIG_STRING \
     --dataset_path mini_dataset \
-    --custom_model 1 \
     --diffusion_model_checkpoint_path $DIFFUSION_MODEL_CHECKPOINT_PATH \
-    --gc_policy_checkpoint_path ${low_level_checkpoints[i]} \
-    --gc_vf_checkpoint_path ${low_level_vf_checkpoints[i]} \
-    --diffusion_model_framework $DIFFUSION_MODEL_FRAMEWORK \
+    --gc_policy_checkpoint_path $gc_policy_checkpoint_path \
+    --diffusion_model_framework jax \
     --save_to_s3 $SAVE_TO_S3 \
     --s3_save_uri $S3_SAVE_URI \
     --use_temporal_ensembling $use_temporal_ensembling \
     --num_denoising_steps $NUM_DENOISING_STEPS \
-    --num_samples $NUM_SAMPLES &
+    --num_samples $NUM_SAMPLES \
+    --flat_policy $FLAT_POLICY \
+    2>&1 | tee "results/stdouts/$current_timestamp/stdout_and_sterr_$i.txt" &
 done
 
 wait
+
+results_files_paths_array=( $(find ./results/ -type f -name "results.json") )
+s3_dirs=""
+for i in "${!results_files_paths_array[@]}"
+do
+    echo "results_files_paths_array[$i]: ${results_files_paths_array[i]}"
+    dir_name=$(dirname "${results_files_paths_array[i]}")
+    echo "dir_name: $dir_name"
+
+    modified_dir_name=$(echo "$dir_name" | sed 's|^./results/||')
+    echo "modified_dir_name: $modified_dir_name"
+
+    s3_dir_name="${S3_SAVE_URI}/${modified_dir_name}"
+    echo "s3_dir_name: $s3_dir_name"
+
+    s3_dirs+="$s3_dir_name "
+
+    aws s3 cp ${results_files_paths_array[i]} $s3_dir_name
+done 
+
+
+echo "s3_dirs: $s3_dirs"
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs $s3_dirs
+
+aws s3 sync "results/stdouts/$current_timestamp" "$S3_SAVE_URI/stdouts/$current_timestamp"
+
+
+for i in "${!results_files_paths_array[@]}"
+do
+    # echo "results_files_paths_array[$i]: ${results_files_paths_array[i]}"
+    dir_name=$(dirname "${results_files_paths_array[i]}")
+    modified_dir_name=$(echo "$dir_name" | sed 's|^./results/||')
+    s3_dir_name="${S3_SAVE_URI}/${modified_dir_name}"
+    echo "$s3_dir_name \\"
+done 
