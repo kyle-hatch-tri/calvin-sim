@@ -58,8 +58,9 @@ def load_policy_checkpoint(path, wandb_run_name):
 
     if wandb_run_name is None:
         # config = load_dict_from_json("/home/kylehatch/Desktop/hidql/susie/scripts/robot/low_level_config_jsons/gcdiffusion_auggoaldiff.json")
-        # config = load_dict_from_yaml(FLAGS.config_path)
-        config = load_dict_from_json(FLAGS.config_path)
+        bridge_data_config = load_dict_from_json("scripts/robot/gcdiffusion_auggoaldiff.json")
+        config = load_dict_from_yaml(FLAGS.config_path)
+        # config = load_dict_from_json(FLAGS.config_path)
     else:
         # load information from wandb
         api = wandb.Api()
@@ -119,7 +120,7 @@ def load_policy_checkpoint(path, wandb_run_name):
 
     # load action metadata from wandb
     # action_proprio_metadata = run.config["bridgedata_config"]["action_proprio_metadata"]
-    action_proprio_metadata = config["bridgedata_config"]["action_proprio_metadata"]
+    action_proprio_metadata = bridge_data_config["bridgedata_config"]["action_proprio_metadata"]
     action_mean = np.array(action_proprio_metadata["action"]["mean"])
     action_std = np.array(action_proprio_metadata["action"]["std"])
 
@@ -169,7 +170,7 @@ export PYTHONPATH="/home/kylehatch/Desktop/hidql/calvin-sim/external/networkx:$P
 
 python3 -u scripts/policy_ckpt_to_hlo.py \
 --checkpoint_path /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_1000 \
---config_path /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/config.json \
+--config_path /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/config.yaml \
 --outpath /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_1000/serialized_policy_ckpt \
 --im_size 200
 

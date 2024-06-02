@@ -1,0 +1,647 @@
+{
+    "log_interval": {
+      "value": 1000
+    },
+    "sagemaker_program": {
+      "value": "sagemaker_launch_bridge_gcbc.sh"
+    },
+    "pdb_post_mortem": {
+      "value": false
+    },
+    "s3_save_uri": {
+      "value": "s3://kyle-sagemaker-training-outputs"
+    },
+    "run_with_pdb": {
+      "value": false
+    },
+    "is_smddpmprun_installed": {
+      "value": false
+    },
+    "runtime_oom_exit": {
+      "value": true
+    },
+    "network_interface_name": {
+      "value": "eth0"
+    },
+    "alsologtostderr": {
+      "value": false
+    },
+    "instance_groups": {
+      "value": [
+        "homogeneousCluster"
+      ]
+    },
+    "input_dir": {
+      "value": "/opt/ml/input"
+    },
+    "algo": {
+      "value": "gcdiffusion"
+    },
+    "resource_config": {
+      "value": {
+        "network_interface_name": "eth0",
+        "current_host": "algo-1",
+        "current_instance_type": "ml.p4d.24xlarge",
+        "instance_groups": [
+          {
+            "hosts": [
+              "algo-1"
+            ],
+            "instance_type": "ml.p4d.24xlarge",
+            "instance_group_name": "homogeneousCluster"
+          }
+        ],
+        "current_group_name": "homogeneousCluster",
+        "hosts": [
+          "algo-1"
+        ]
+      }
+    },
+    "dataset_name": {
+      "value": "bridge"
+    },
+    "test_random_seed": {
+      "value": 301
+    },
+    "is_modelparallel_enabled": {
+      "value": null
+    },
+    "num_cpus": {
+      "value": 96
+    },
+    "is_hetero": {
+      "value": false
+    },
+    "test_srcdir": {
+      "value": ""
+    },
+    "helpshort": {
+      "value": false
+    },
+    "job_name": {
+      "value": "bridge-data-v2-2024-06-02-00-59-06-790"
+    },
+    "input_config_dir": {
+      "value": "/opt/ml/input/config"
+    },
+    "agent_kwargs": {
+      "value": {
+        "action_samples": 1,
+        "score_network_kwargs": {
+          "time_dim": 32,
+          "num_blocks": 3,
+          "dropout_rate": 0.1,
+          "hidden_dim": 256,
+          "use_layer_norm": true
+        },
+        "learning_rate": 0.0003,
+        "beta_schedule": "cosine",
+        "repeat_last_step": 0,
+        "early_goal_concat": true,
+        "diffusion_steps": 20,
+        "actor_decay_steps": 2000000,
+        "use_proprio": false,
+        "warmup_steps": 2000,
+        "shared_goal_encoder": true
+      }
+    },
+    "chex_assert_multiple_cpu_devices": {
+      "value": false
+    },
+    "hostname": {
+      "value": "ip-10-232-16-74.ec2.internal"
+    },
+    "verbosity": {
+      "value": 0
+    },
+    "save_to_s3": {
+      "value": 1
+    },
+    "is_master": {
+      "value": true
+    },
+    "chex_skip_pmap_variant_if_single_device": {
+      "value": true
+    },
+    "current_instance_type": {
+      "value": "ml.p4d.24xlarge"
+    },
+    "num_gpus": {
+      "value": 8
+    },
+    "sagemaker_training_job_name": {
+      "value": "bridge-data-v2-2024-06-02-00-59-06-790"
+    },
+    "delta_threshold": {
+      "value": 0.5
+    },
+    "hyperparameters": {
+      "value": {
+        "model_dir": "s3://sagemaker-us-east-1-124224456861/bridge-data-v2-2024-06-02-00-59-06-790/model"
+      }
+    },
+    "helpxml": {
+      "value": false
+    },
+    "test_randomize_ordering_seed": {
+      "value": ""
+    },
+    "pdb": {
+      "value": false
+    },
+    "test_tmpdir": {
+      "value": "/tmp/absl_testing"
+    },
+    "dataset_kwargs": {
+      "value": {
+        "obs_horizon": 1,
+        "augment_next_obs_goal_differently": true,
+        "shuffle_buffer_size": 25000,
+        "relabel_actions": true,
+        "goal_relabeling_kwargs": {
+          "goal_delta": [
+            0,
+            24
+          ]
+        },
+        "act_pred_horizon": 4,
+        "augment_kwargs": {
+          "random_brightness": [
+            0.2
+          ],
+          "random_hue": [
+            0.1
+          ],
+          "random_resized_crop": {
+            "ratio": [
+              0.9,
+              1.1
+            ],
+            "scale": [
+              0.8,
+              1
+            ]
+          },
+          "augment_order": [
+            "random_resized_crop",
+            "random_brightness",
+            "random_contrast",
+            "random_saturation",
+            "random_hue"
+          ],
+          "random_saturation": [
+            0.8,
+            1.2
+          ],
+          "random_contrast": [
+            0.8,
+            1.2
+          ]
+        },
+        "goal_relabeling_strategy": "delta_goals",
+        "augment": true
+      }
+    },
+    "agent": {
+      "value": "gc_ddpm_bc"
+    },
+    "help": {
+      "value": false
+    },
+    "config": {
+      "value": {
+        "save_interval": 50000,
+        "resume_path": null,
+        "eval_interval": 50000,
+        "num_val_batches": 8,
+        "num_steps": 600000,
+        "log_interval": 1000,
+        "data_path": "/opt/ml/input/data/bridgev2_processed",
+        "agent": "gc_ddpm_bc",
+        "dataset_kwargs": {
+          "augment_kwargs": {
+            "augment_order": [
+              "random_resized_crop",
+              "random_brightness",
+              "random_contrast",
+              "random_saturation",
+              "random_hue"
+            ],
+            "random_resized_crop": {
+              "ratio": [
+                0.9,
+                1.1
+              ],
+              "scale": [
+                0.8,
+                1
+              ]
+            },
+            "random_hue": [
+              0.1
+            ],
+            "random_contrast": [
+              0.8,
+              1.2
+            ],
+            "random_saturation": [
+              0.8,
+              1.2
+            ],
+            "random_brightness": [
+              0.2
+            ]
+          },
+          "augment": true,
+          "relabel_actions": true,
+          "act_pred_horizon": 4,
+          "obs_horizon": 1,
+          "augment_next_obs_goal_differently": true,
+          "goal_relabeling_kwargs": {
+            "goal_delta": [
+              0,
+              24
+            ]
+          },
+          "goal_relabeling_strategy": "delta_goals",
+          "shuffle_buffer_size": 25000
+        },
+        "language_conditioned": false,
+        "encoder_kwargs": {
+          "pooling_method": "avg",
+          "act": "swish",
+          "add_spatial_coordinates": true
+        },
+        "agent_kwargs": {
+          "use_proprio": false,
+          "warmup_steps": 2000,
+          "action_samples": 1,
+          "score_network_kwargs": {
+            "num_blocks": 3,
+            "use_layer_norm": true,
+            "hidden_dim": 256,
+            "time_dim": 32,
+            "dropout_rate": 0.1
+          },
+          "beta_schedule": "cosine",
+          "repeat_last_step": 0,
+          "learning_rate": 0.0003,
+          "early_goal_concat": true,
+          "shared_goal_encoder": true,
+          "actor_decay_steps": 2000000,
+          "diffusion_steps": 20
+        },
+        "dataset_name": "bridge",
+        "encoder": "resnetv1-34-bridge",
+        "save_dir": "/opt/ml/code/results",
+        "batch_size": 256,
+        "seed": 1
+      }
+    },
+    "distribution_hosts": {
+      "value": []
+    },
+    "module_name": {
+      "value": "sagemaker_launch_bridge_gcbc.sh"
+    },
+    "channel_input_dirs": {
+      "value": {
+        "bridgev2_processed": "/opt/ml/input/data/bridgev2_processed"
+      }
+    },
+    "only_check_args": {
+      "value": false
+    },
+    "user_entry_point": {
+      "value": "sagemaker_launch_bridge_gcbc.sh"
+    },
+    "checkpoint_path": {
+      "value": ""
+    },
+    "logtostderr": {
+      "value": false
+    },
+    "bridgedata_config": {
+      "value": {
+        "exclude": [],
+        "include": [
+          [
+            "icra/?*/?*/?*",
+            "flap/?*/?*/?*",
+            "bridge_data_v1/berkeley/?*/?*",
+            "rss/?*/?*/?*",
+            "bridge_data_v2/?*/?*/?*"
+          ]
+        ],
+        "sample_weights": null,
+        "action_proprio_metadata": {
+          "proprio": {
+            "min": [
+              0.00019296819,
+              0.00013667766,
+              -0.00014583133,
+              -0.00018390431,
+              -0.00030808983,
+              0.0002742527,
+              0.59716219
+            ],
+            "max": [
+              0.00912848,
+              0.0127196,
+              0.01229497,
+              0.02606696,
+              0.02875283,
+              0.07807977,
+              0.48710242
+            ],
+            "mean": [
+              0.00019296819,
+              0.00013667766,
+              -0.00014583133,
+              -0.00018390431,
+              -0.00030808983,
+              0.0002742527,
+              0.59716219
+            ],
+            "std": [
+              0.00912848,
+              0.0127196,
+              0.01229497,
+              0.02606696,
+              0.02875283,
+              0.07807977,
+              0.48710242
+            ]
+          },
+          "action": {
+            "max": [
+              0.00912848,
+              0.0127196,
+              0.01229497,
+              0.02606696,
+              0.02875283,
+              0.07807977,
+              0.48710242
+            ],
+            "min": [
+              0.00019296819,
+              0.00013667766,
+              -0.00014583133,
+              -0.00018390431,
+              -0.00030808983,
+              0.0002742527,
+              0.59716219
+            ],
+            "mean": [
+              0.00019296819,
+              0.00013667766,
+              -0.00014583133,
+              -0.00018390431,
+              -0.00030808983,
+              0.0002742527,
+              0.59716219
+            ],
+            "std": [
+              0.00912848,
+              0.0127196,
+              0.01229497,
+              0.02606696,
+              0.02875283,
+              0.07807977,
+              0.48710242
+            ]
+          }
+        }
+      }
+    },
+    "seed": {
+      "value": 1
+    },
+    "helpfull": {
+      "value": false
+    },
+    "?": {
+      "value": false
+    },
+    "sagemaker_instance_type": {
+      "value": "ml.p4d.24xlarge"
+    },
+    "output_data_dir": {
+      "value": "/opt/ml/output/data"
+    },
+    "instance_groups_dict": {
+      "value": {
+        "homogeneousCluster": {
+          "instance_group_name": "homogeneousCluster",
+          "hosts": [
+            "algo-1"
+          ],
+          "instance_type": "ml.p4d.24xlarge"
+        }
+      }
+    },
+    "language_conditioned": {
+      "value": false
+    },
+    "encoder_kwargs": {
+      "value": {
+        "add_spatial_coordinates": true,
+        "pooling_method": "avg",
+        "act": "swish"
+      }
+    },
+    "framework_module": {
+      "value": "sagemaker_pytorch_container.training:main"
+    },
+    "tt_check_filter": {
+      "value": false
+    },
+    "additional_framework_parameters": {
+      "value": {
+        "sagemaker_distributed_dataparallel_enabled": false,
+        "sagemaker_instance_type": "ml.p4d.24xlarge"
+      }
+    },
+    "tt_single_core_summaries": {
+      "value": false
+    },
+    "save_interval": {
+      "value": 50000
+    },
+    "showprefixforinfo": {
+      "value": true
+    },
+    "debug": {
+      "value": 0
+    },
+    "stderrthreshold": {
+      "value": "fatal"
+    },
+    "model_dir": {
+      "value": "/opt/ml/model"
+    },
+    "sagemaker_submit_directory": {
+      "value": "s3://tri-ml-sandbox-16011-us-east-1-datasets/sagemaker/kylehatch/bridge_data_v2/bridge_data_v2_2024-06-01-17-59-06-753/bridge-data-v2-2024-06-02-00-59-06-790/source/sourcedir.tar.gz"
+    },
+    "input_data_config": {
+      "value": {
+        "bridgev2_processed": {
+          "TrainingInputMode": "File",
+          "RecordWrapperType": "None",
+          "S3DistributionType": "FullyReplicated"
+        }
+      }
+    },
+    "op_conversion_fallback_to_while_loop": {
+      "value": true
+    },
+    "save_dir": {
+      "value": "/opt/ml/code/results"
+    },
+    "resume_path": {
+      "value": null
+    },
+    "sagemaker_container_log_level": {
+      "value": 20
+    },
+    "log_to_wandb": {
+      "value": 1
+    },
+    "is_smddprun_installed": {
+      "value": true
+    },
+    "description": {
+      "value": "auggoaldiff"
+    },
+    "sagemaker_distributed_dataparallel_enabled": {
+      "value": "false"
+    },
+    "hbm_oom_exit": {
+      "value": true
+    },
+    "sagemaker_region": {
+      "value": "us-east-1"
+    },
+    "encoder": {
+      "value": "resnetv1-34-bridge"
+    },
+    "xml_output_file": {
+      "value": ""
+    },
+    "module_dir": {
+      "value": "s3://tri-ml-sandbox-16011-us-east-1-datasets/sagemaker/kylehatch/bridge_data_v2/bridge_data_v2_2024-06-01-17-59-06-753/bridge-data-v2-2024-06-02-00-59-06-790/source/sourcedir.tar.gz"
+    },
+    "chex_n_cpu_devices": {
+      "value": 1
+    },
+    "eval_interval": {
+      "value": 50000
+    },
+    "current_instance_group": {
+      "value": "homogeneousCluster"
+    },
+    "v": {
+      "value": 0
+    },
+    "output_dir": {
+      "value": "/opt/ml/output"
+    },
+    "num_steps": {
+      "value": 600000
+    },
+    "data_path": {
+      "value": "/opt/ml/input/data/bridgev2_processed"
+    },
+    "master_hostname": {
+      "value": "algo-1"
+    },
+    "log_dir": {
+      "value": ""
+    },
+    "output_intermediate_dir": {
+      "value": "/opt/ml/output/intermediate"
+    },
+    "num_neurons": {
+      "value": 0
+    },
+    "num_val_batches": {
+      "value": 8
+    },
+    "log_level": {
+      "value": 20
+    },
+    "wandb_proj_name": {
+      "value": "susie_low_level"
+    },
+    "sagemaker_job_name": {
+      "value": "bridge-data-v2-2024-06-02-00-59-06-790"
+    },
+    "current_instance_group_hosts": {
+      "value": [
+        "algo-1"
+      ]
+    },
+    "batch_size": {
+      "value": 256
+    },
+    "use_cprofile_for_profiling": {
+      "value": true
+    },
+    "distribution_instance_groups": {
+      "value": []
+    },
+    "current_host": {
+      "value": "algo-1"
+    },
+    "run_with_profiling": {
+      "value": false
+    },
+    "_wandb": {
+      "value": {
+        "python_version": "3.10.12",
+        "is_kaggle_kernel": false,
+        "t": {
+          "1": [
+            2,
+            3,
+            12,
+            45,
+            55
+          ],
+          "2": [
+            2,
+            3,
+            12,
+            45,
+            55
+          ],
+          "3": [
+            9,
+            13,
+            16,
+            23,
+            61
+          ],
+          "4": "3.10.12",
+          "5": "0.16.6",
+          "8": [
+            5
+          ],
+          "13": "linux-x86_64"
+        },
+        "code_path": "code/train.py",
+        "framework": "keras",
+        "start_time": 1717290659,
+        "cli_version": "0.16.6",
+        "is_jupyter_run": false
+      }
+    },
+    "hosts": {
+      "value": [
+        "algo-1"
+      ]
+    },
+    "profile_file": {
+      "value": null
+    }
+  }

@@ -421,7 +421,7 @@ export PYTHONPATH="/PATH/TO/calvin-sim/external/jaxrl_m:$PYTHONPATH"
 # SUSIE with low level policy trained with unsynced image augmentations, high level task sampling with 8 goal images, seed_0
 python3 -u scripts/robot/eval_diffusion.py \
 --diffusion_checkpoint kvablack/susie \
---policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_150000/serialized_policy_ckpt \
+--policy_checkpoint /PATH/TO/bridge_susie_checkpoints/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_150000/serialized_policy_ckpt \
 --diffusion_pretrained_path runwayml/stable-diffusion-v1-5:flax \
 --diffusion_num_steps 50 \
 --prompt_w 2.5 \
@@ -429,15 +429,15 @@ python3 -u scripts/robot/eval_diffusion.py \
 --num_timesteps 15 \
 --num_samples 8 \
 --vf_agent_type lcgcprogressvf \
---vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/checkpoint_100000 \
---vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/config.yaml \
+--vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/checkpoint_100000 \
+--vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/config.yaml \
 --dummy_run=True 
 
 
 # SUSIE with high level task sampling with 8 goal images, seed_0
 python3 -u scripts/robot/eval_diffusion.py \
 --diffusion_checkpoint kvablack/susie \
---policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/gcdiffusion/default/seed_0/XXX/checkpoint_150000/serialized_policy_ckpt \
+--policy_checkpoint /PATH/TO/bridge_susie_checkpoints/gcdiffusion/default/seed_0/20240602_010259/checkpoint_150000/serialized_policy_ckpt \
 --diffusion_pretrained_path runwayml/stable-diffusion-v1-5:flax \
 --diffusion_num_steps 50 \
 --prompt_w 2.5 \
@@ -445,15 +445,15 @@ python3 -u scripts/robot/eval_diffusion.py \
 --num_timesteps 15 \
 --num_samples 8 \
 --vf_agent_type lcgcprogressvf \
---vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/default/seed_0/XXX/checkpoint_100000 \
---vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/default/seed_0/XXX/config.yaml \
+--vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/default/seed_0/20240602_011054/checkpoint_100000 \
+--vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/default/seed_0/20240602_011054/config.yaml \
 --dummy_run=True 
 
 
 # SUSIE with low level policy trained with unsynced image augmentations, no high level task filtering, seed_0
 python3 -u scripts/robot/eval_diffusion.py \
 --diffusion_checkpoint kvablack/susie \
---policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_150000/serialized_policy_ckpt \
+--policy_checkpoint /PATH/TO/bridge_susie_checkpoints/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_150000/serialized_policy_ckpt \
 --diffusion_pretrained_path runwayml/stable-diffusion-v1-5:flax \
 --diffusion_num_steps 50 \
 --prompt_w 2.5 \
@@ -461,15 +461,15 @@ python3 -u scripts/robot/eval_diffusion.py \
 --num_timesteps 15 \
 --num_samples 1 \
 --vf_agent_type lcgcprogressvf \
---vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/checkpoint_100000 \
---vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/config.yaml \
+--vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/checkpoint_100000 \
+--vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/config.yaml \
 --dummy_run=True 
 
 
 # SUSIE, no high level task filtering, seed_0
 python3 -u scripts/robot/eval_diffusion.py \
 --diffusion_checkpoint kvablack/susie \
---policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/gcdiffusion/default/seed_0/XXX/checkpoint_150000/serialized_policy_ckpt \
+--policy_checkpoint /PATH/TO/bridge_susie_checkpoints/gcdiffusion/default/seed_0/20240602_010259/checkpoint_150000/serialized_policy_ckpt \
 --diffusion_pretrained_path runwayml/stable-diffusion-v1-5:flax \
 --diffusion_num_steps 50 \
 --prompt_w 2.5 \
@@ -477,8 +477,8 @@ python3 -u scripts/robot/eval_diffusion.py \
 --num_timesteps 15 \
 --num_samples 1 \
 --vf_agent_type lcgcprogressvf \
---vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/default/seed_0/XXX/checkpoint_100000 \
---vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/susie_low_level/bridge/lcgcprogressvf/default/seed_0/XXX/config.yaml \
+--vf_policy_checkpoint /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/default/seed_0/20240602_011054/checkpoint_100000 \
+--vf_agent_config_path /PATH/TO/bridge_susie_checkpoints/lcgcprogressvf/default/seed_0/20240602_011054/config.yaml \
 --dummy_run=True 
 
 
@@ -488,27 +488,5 @@ To start running on WidowX,
 2. Set --dummy_run=False
 3.  You might also have to set values for the --initial_eep and --blocking flags
 
-===
 
-export PYTHONPATH="/home/kylehatch/Desktop/hidql/calvin-sim/external/susie:$PYTHONPATH"
-export PYTHONPATH="/home/kylehatch/Desktop/hidql/calvin-sim/external/jaxrl_m:$PYTHONPATH"
-python3 -u scripts/robot/eval_diffusion.py \
---diffusion_checkpoint kvablack/susie \
---policy_checkpoint /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/gcdiffusion/auggoaldiff/seed_0/20240602_011058/checkpoint_1000/serialized_policy_ckpt \
---diffusion_pretrained_path runwayml/stable-diffusion-v1-5:flax \
---diffusion_num_steps 50 \
---prompt_w 2.5 \
---context_w 7.5 \
---num_timesteps 15 \
---num_samples 4 \
---vf_agent_type lcgcprogressvf \
---vf_policy_checkpoint /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/checkpoint_1000 \
---vf_agent_config_path /home/kylehatch/Desktop/hidql/susie-calvin-checkpoints/susie_low_level/bridge/lcgcprogressvf/auggoaldiff/seed_0/20240602_010253/config.yaml \
---dummy_run=True 
-
-
-1. Upload checkpoints to google drive folder 
-    - including all of the seeds
-    - run the policy_ckpt_to_hlo.py on all the checkpoints
-2. push to github and share with Oier
 """
