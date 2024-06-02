@@ -8,7 +8,9 @@ from collections import defaultdict
 # RESULTS_DIR = "/home/kylehatch/Desktop/hidql/calvin-sim/results/single_task/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiff/seed_0/20240228_024329/checkpoint_150000/2024.03.28_11.25.11"
 
 # Default 
-RESULTS_DIR = "/home/kylehatch/Desktop/hidql/results_oracle_goals_libero/single_task/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default/seed_0/20240301_015613/checkpoint_500000/2024.03.28_11.24.24"
+# RESULTS_DIR = "/home/kylehatch/Desktop/hidql/results_oracle_goals_libero/single_task/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default/seed_0/20240301_015613/checkpoint_500000/2024.03.28_11.24.24"
+
+RESULTS_DIR = "/home/kylehatch/Desktop/hidql/saved_calvin_eval_results/results/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiff/seed_0/20240228_024329/checkpoint_150000/chatgptdummy16slibs22024.04.26_12.27.01"
 
 skip_tasks = []
 

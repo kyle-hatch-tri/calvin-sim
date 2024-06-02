@@ -467,6 +467,34 @@ LIBERO_SPLIT4_TASKS = {
 }
 
 
+LIBERO_SPLIT_ATM_LIBERO10_TASKS = {
+    "train": libero_10_tasks,
+    "val": libero_10_tasks,
+}
+
+LIBERO_SPLIT_ATM_LIBERO90_TASKS = {
+    "train": libero_90_tasks,
+    "val": libero_90_tasks,
+}
+
+
+LIBERO_SPLIT_ATM_LIBEROGOAL_TASKS = {
+    "train": libero_goal_tasks,
+    "val": libero_goal_tasks,
+}
+
+
+LIBERO_SPLIT_ATM_LIBEROOBJECT_TASKS = {
+    "train": libero_object_tasks,
+    "val": libero_object_tasks,
+}
+
+LIBERO_SPLIT_ATM_LIBEROSPATIAL_TASKS = {
+    "train": libero_spatial_tasks,
+    "val": libero_spatial_tasks,
+}
+
+
 def get_suite_from_task_name(task_name):
     if task_name in libero_10_tasks:
         return "libero_10"
@@ -489,9 +517,15 @@ def get_suite_from_task_name(task_name):
 
 LIBERO_TASK_SPLITS = dict(liberosplit1=LIBERO_SPLIT1_TASKS,
                           liberosplit2=LIBERO_SPLIT2_TASKS,
+                          liberosplit210shot=LIBERO_SPLIT2_TASKS,
                           liberosplit3=LIBERO_SPLIT3_TASKS,
                           liberosplit3val90=LIBERO_SPLIT3_VAL90_TASKS,
-                          liberosplit4=LIBERO_SPLIT4_TASKS,)
+                          liberosplit4=LIBERO_SPLIT4_TASKS,
+                          liberosplitatmlibero10=LIBERO_SPLIT_ATM_LIBERO10_TASKS,
+                          liberosplitatmlibero90=LIBERO_SPLIT_ATM_LIBERO90_TASKS,
+                          liberosplitatmliberogoal=LIBERO_SPLIT_ATM_LIBEROGOAL_TASKS,
+                          liberosplitatmliberoobject=LIBERO_SPLIT_ATM_LIBEROOBJECT_TASKS,
+                          liberosplitatmliberospatial=LIBERO_SPLIT_ATM_LIBEROSPATIAL_TASKS,)
 
 
 

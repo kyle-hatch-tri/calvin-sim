@@ -25,3 +25,13 @@ if __name__ == "__main__":
     view_file(args)
 
 
+"""
+python3 -u random_util_scripts/view_s3_file.py \
+s3://kyle-sagemaker-training-outputs/susie_low_level/liberosplit2/gcdiffusion/default2/seed_0/20240507_010012/config.yaml
+
+python3 -u random_util_scripts/view_s3_file.py \
+s3://kyle-sagemaker-training-outputs/susie_low_level/liberosplit2/gcdiffusion/default/seed_0/20240301_015613/config.yaml
+
+python3 -u random_util_scripts/view_s3_file.py \
+s3://kyle-sagemaker-training-outputs/susie_low_level/liberosplit2/gcdiffusion/auggoaldiff/seed_0/20240228_024329/config.yaml
+"""

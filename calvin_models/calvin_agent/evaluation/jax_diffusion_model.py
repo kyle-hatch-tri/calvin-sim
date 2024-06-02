@@ -45,7 +45,7 @@ class DiffusionModel:
 
 
 
-    def generate(self, language_command : str, image_obs : np.ndarray, return_inference_time=False):
+    def generate(self, language_command : str, image_obs : np.ndarray, return_inference_time=False, prompt_w=7.5, context_w=1.5):
         # Resize image to 256x256
         
         image_obs = np.array(Image.fromarray(image_obs).resize((256, 256))).astype(np.uint8)
@@ -53,7 +53,7 @@ class DiffusionModel:
         # image_obs = np.stack([np.array(Image.fromarray(img).resize((256, 256))) for img in image_obs], axis=0).astype(np.uint8)
 
         t0 = time.time()
-        sample = self.sample_fn(image_obs, language_command, prompt_w=7.5, context_w=1.5)
+        sample = self.sample_fn(image_obs, language_command, prompt_w=prompt_w, context_w=context_w)
 
         # sample = self.sample_fn(image_obs[0], language_command, prompt_w=7.5, context_w=1.5)
 

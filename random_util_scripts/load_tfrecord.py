@@ -8,9 +8,9 @@ PROTO_TYPE_SPEC = {
         "actions": tf.float32,
         "proprioceptive_states": tf.float32,
         "image_states": tf.uint8,
-        "generated_goals": tf.uint8,
-        "encoded_decoded": tf.uint8,
-        "noised_encoded_decoded": tf.uint8,
+        # "generated_goals": tf.uint8,
+        # "encoded_decoded": tf.uint8,
+        # "noised_encoded_decoded": tf.uint8,
         "language_annotation": tf.string, 
     }
 
@@ -31,16 +31,16 @@ def _decode_example(example_proto):
         return {
             "observations": {
                 "image": parsed_tensors["image_states"][:-1],
-                "generated_goals": parsed_tensors["generated_goals"][:-1],
-                "encoded_decoded": parsed_tensors["encoded_decoded"][:-1],
-                "noised_encoded_decoded": parsed_tensors["noised_encoded_decoded"][:-1],
+                # "generated_goals": parsed_tensors["generated_goals"][:-1],
+                # "encoded_decoded": parsed_tensors["encoded_decoded"][:-1],
+                # "noised_encoded_decoded": parsed_tensors["noised_encoded_decoded"][:-1],
                 "proprio": parsed_tensors["proprioceptive_states"][:-1],
             },
             "next_observations": {
                 "image": parsed_tensors["image_states"][1:],
-                "generated_goals": parsed_tensors["generated_goals"][1:],
-                "encoded_decoded": parsed_tensors["encoded_decoded"][1:],
-                "noised_encoded_decoded": parsed_tensors["noised_encoded_decoded"][1:],
+                # "generated_goals": parsed_tensors["generated_goals"][1:],
+                # "encoded_decoded": parsed_tensors["encoded_decoded"][1:],
+                # "noised_encoded_decoded": parsed_tensors["noised_encoded_decoded"][1:],
                 "proprio": parsed_tensors["proprioceptive_states"][1:],
             },
             **({"language": parsed_tensors["language_annotation"]} if True else {}),
@@ -77,12 +77,28 @@ def save_video(output_video_file, frames):
 
 if __name__ == "__main__":
     # file_path = "/home/kylehatch/Desktop/hidql/data/calvin_data_processed/language_conditioned_16_samples/training/A/traj0.tfrecord"
-    file_path = "/home/kylehatch/Desktop/hidql/data/calvin_data_processed/language_conditioned_4_samples_encodedecode_noisedencodedecode/validation/D/traj100.tfrecord"
+    file_path = "/home/kylehatch/Desktop/hidql/data/calvin_data_processed_subset/language_conditioned/training/A/traj10.tfrecord"
     loaded_data = load_tfrecord_file(file_path)
     
     # Example: Iterate through the loaded data
     for i, record in enumerate(loaded_data):
         # Access your features here, e.g., record['feature1'], record['feature2']
+
+        image = record["observations"]["image"]
+        proprio = record["observations"]["proprio"]
+        next_image = record["next_observations"]["image"]
+        next_proprio = record["next_observations"]["proprio"]
+        actions = record["actions"]
+        terminals = record["terminals"]
+
+        print("image.shape:", image.shape)
+        print("proprio.shape:", proprio.shape)
+        print("next_image.shape:", next_image.shape)
+        print("next_proprio.shape:", next_proprio.shape)
+        print("actions.shape:", actions.shape)
+        print("terminals.shape:", terminals.shape)
+
+        import ipdb; ipdb.set_trace()
         
         image = record["observations"]["image"]
         generated_goals = record["observations"]["generated_goals"]
@@ -93,6 +109,9 @@ if __name__ == "__main__":
         generated_goals = np.array(generated_goals)
         encode_decode = np.array(encode_decode)
         noised_encode_decode = np.array(noised_encode_decode)
+
+        
+        
         
 
         image = np.concatenate([image for i in range(generated_goals.shape[1])], axis=2)

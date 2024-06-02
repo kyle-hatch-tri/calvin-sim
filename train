@@ -6,7 +6,8 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 echo "AGENT_CONFIG_STRING: $AGENT_CONFIG_STRING"
 echo "NUM_EVAL_SEQUENCES: $NUM_EVAL_SEQUENCES"
 echo "DIFFUSION_MODEL_CHECKPOINT_PATH: $DIFFUSION_MODEL_CHECKPOINT_PATH"
-echo "GC_POLICY_CHECKPOINT_PATHS: $GC_POLICY_CHECKPOINT_PATHS"
+echo "HIGH_LEVEL_VF_CHECKPOINT_PATH: $HIGH_LEVEL_VF_CHECKPOINT_PATH" # not actually used
+# echo "GC_POLICY_CHECKPOINT_PATHS: $GC_POLICY_CHECKPOINT_PATHS"
 echo "SAVE_TO_S3: $SAVE_TO_S3"
 echo "S3_SAVE_URI: $S3_SAVE_URI"
 echo "NUM_DENOISING_STEPS: $NUM_DENOISING_STEPS"
@@ -15,11 +16,15 @@ echo "EP_LEN: $EP_LEN"
 echo "NUM_SAMPLES: $NUM_SAMPLES"
 echo "SUBGOAL_MAX: $SUBGOAL_MAX"
 echo "FLAT_POLICY: $FLAT_POLICY"
+echo "FILTERING_METHOD: $FILTERING_METHOD"
 
 
 
 export DIFFUSION_MODEL_CHECKPOINT="/opt/ml/input/data/high_level"
 echo "DIFFUSION_MODEL_CHECKPOINT: $DIFFUSION_MODEL_CHECKPOINT"
+
+export HIGH_LEVEL_VF_CHECKPOINT="/opt/ml/input/data/high_level_vf"
+echo "HIGH_LEVEL_VF_CHECKPOINT: $HIGH_LEVEL_VF_CHECKPOINT"
 
 # export MUJOCO_EGL_DEVICE_ID="-1"
 
@@ -80,6 +85,7 @@ for ((i=0; i<$NUM_LOW_LEVEL_CHECKPOINTS; i++)); do
 
     python3 -u evaluate_policy_subgoal_diffusion.py \
     --agent_config_string $AGENT_CONFIG_STRING \
+    --vf_agent_config_string $VF_AGENT_CONFIG_STRING \
     --dataset_path mini_dataset \
     --diffusion_model_checkpoint_path $DIFFUSION_MODEL_CHECKPOINT_PATH \
     --gc_policy_checkpoint_path $gc_policy_checkpoint_path \
@@ -90,6 +96,7 @@ for ((i=0; i<$NUM_LOW_LEVEL_CHECKPOINTS; i++)); do
     --num_denoising_steps $NUM_DENOISING_STEPS \
     --num_samples $NUM_SAMPLES \
     --flat_policy $FLAT_POLICY \
+    --filtering_method $FILTERING_METHOD \
     2>&1 | tee "results/stdouts/$current_timestamp/stdout_and_sterr_$i.txt" &
 done
 

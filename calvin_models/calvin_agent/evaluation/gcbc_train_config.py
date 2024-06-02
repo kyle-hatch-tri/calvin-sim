@@ -10,7 +10,7 @@ def get_config(config_string):
     base_real_config = dict(
         batch_size=256,
         num_val_batches=8,
-        num_steps=int(2e6),
+        num_steps=600_000, # int(2e6),
         log_interval=1000,
         eval_interval=50_000,
         save_interval=50_000,
@@ -32,6 +32,18 @@ def get_config(config_string):
         dataset_dir = "libero_data_processed_split3"
     elif dataset == "liberosplit4":
         dataset_dir = "libero_data_processed_split4"
+    elif dataset == "liberosplit210shot":
+        dataset_dir = "libero_data_processed_split210shot"
+    elif dataset == "liberosplitatmlibero10":
+        dataset_dir = "libero_data_processed_splitatmlibero10"
+    elif dataset == "liberosplitatmlibero90":
+        dataset_dir = "libero_data_processed_splitatmlibero90"
+    elif dataset == "liberosplitatmliberogoal":
+        dataset_dir = "libero_data_processed_splitatmliberogoal"
+    elif dataset == "liberosplitatmliberoobject":
+        dataset_dir = "libero_data_processed_splitatmliberoobject"
+    elif dataset == "liberosplitatmliberospatial":
+        dataset_dir = "libero_data_processed_splitatmliberospatial"
     else:
         raise ValueError(f"Unsupported dataset: \"{dataset}\".")
 
@@ -119,7 +131,7 @@ def get_config(config_string):
         agent_type = "gc_ddpm_bc"
 
         
-        dataset_kwargs["goal_relabeling_kwargs"] = dict(goal_delta=[0, 20])
+        dataset_kwargs["goal_relabeling_kwargs"] = dict(goal_delta=[0, 20]) # why is this 20 and not 24??? Maybe this should be like 50 or something? Or even bigger? 100? 200? Wait, but doesn't matter for language conditioned stuff?? Since always the same language instruction
         dataset_kwargs["load_language"] = True 
         dataset_kwargs["skip_unlabeled"] = True 
         dataset_kwargs["obs_horizon"] = 1
@@ -148,6 +160,89 @@ def get_config(config_string):
             actor_decay_steps=int(2e6),
         )
 
+    elif algo == "lcgcprogressvf":
+        agent_type = "lcgc_progress_vf"
+        dataset_kwargs["goal_relabeling_kwargs"] = dict(goal_delta=[16, 24])
+        dataset_kwargs["load_language"] = True 
+        dataset_kwargs["skip_unlabeled"] = True 
+
+        agent_kwargs = dict(
+            network_kwargs=dict(
+                dropout_rate=0.1,
+                hidden_dims=[256, 256],
+                use_layer_norm=True,
+            ),
+            # policy_kwargs=dict(tanh_squash_distribution=False, 
+            #                    state_dependent_std=False,
+            #                 #    dropout=0.0,
+            #                    ),
+            #language_conditioned=True,
+            early_goal_concat=False,
+            shared_goal_encoder=False,
+            use_proprio=False,
+            learning_rate=3e-4,
+            warmup_steps=2000,
+
+            frac_pos=0.5,
+            frac_neg_wrong_lang=0.2,
+            frac_neg_reverse_direction=0.2,
+            frac_neg_wrong_goalimg=0.1,
+
+            loss_fn="bce",
+        )
+
+        # if "vfbatchbalance1" in variant:
+        #     agent_kwargs["frac_pos"] = 0.25
+        #     agent_kwargs["frac_neg_wrong_lang"] = 0.25
+        #     agent_kwargs["frac_neg_reverse_direction"] = 0.25
+        #     agent_kwargs["frac_neg_wrong_goalimg"] = 0.25
+        # elif "vfbatchbalance2" in variant:
+        #     agent_kwargs["frac_pos"] = 0.4
+        #     agent_kwargs["frac_neg_wrong_lang"] = 0.2
+        #     agent_kwargs["frac_neg_reverse_direction"] = 0.2
+        #     agent_kwargs["frac_neg_wrong_goalimg"] = 0.2
+        # elif "vfbatchbalance3" in variant:
+        #     agent_kwargs["frac_pos"] = 0.4
+        #     agent_kwargs["frac_neg_wrong_lang"] = 0.1
+        #     agent_kwargs["frac_neg_reverse_direction"] = 0.4
+        #     agent_kwargs["frac_neg_wrong_goalimg"] = 0.1
+        if "hingeloss" in variant:
+            agent_kwargs["loss_fn"] = "hinge"
+
+
+
+    elif algo == "contrastivevf":
+        agent_type = "stable_contrastive_rl_vf"
+
+        agent_kwargs = dict(
+            critic_network_kwargs=dict(
+                dropout_rate=0.1,
+                # hidden_dims=[256, 256],
+                hidden_dims=[1024, 1024],
+                use_layer_norm=True,
+            ),
+            early_goal_concat=True,
+            shared_goal_encoder=True,
+            use_proprio=False,
+            learning_rate=3e-4,
+            warmup_steps=2000,
+        )
+    elif algo == "contrastiverl":
+        agent_type = "stable_contrastive_rl"
+
+        agent_kwargs = dict(
+            critic_network_kwargs=dict(
+                dropout_rate=0.1,
+                # hidden_dims=[256, 256],
+                hidden_dims=[1024, 1024],
+                use_layer_norm=True,
+            ),
+            early_goal_concat=True,
+            shared_goal_encoder=True,
+            use_proprio=False,
+            learning_rate=3e-4,
+            warmup_steps=2000,
+        )
     elif algo == "gcdiscriminator":
         
         agent_type = "gc_discriminator"
@@ -260,6 +355,7 @@ def get_config(config_string):
             agent_kwargs["expectile"] = 0.7
             agent_kwargs["temperature"] = 3
 
+        
 
         # discount=0.99,
         # expectile=0.9,
@@ -295,34 +391,37 @@ def get_config(config_string):
         config["text_processor_kwargs"] = dict()
         
 
-    if "generatedgoals" in variant:
-        config["dataset_kwargs"]["use_generated_goals"] = True 
-        # config["frac_generated"] = 0.5 
-        config["dataset_kwargs"]["goal_relabeling_strategy"] = "delta_goals_with_generated"
+    # if "generatedgoals" in variant:
+    #     config["dataset_kwargs"]["use_generated_goals"] = True 
+    #     # config["frac_generated"] = 0.5 
+    #     config["dataset_kwargs"]["goal_relabeling_strategy"] = "delta_goals_with_generated"
 
-        goal_relabeling_kwargs = dict(goal_delta=[16, 24])
+    #     goal_relabeling_kwargs = dict(goal_delta=[16, 24])
 
-        if "frac0.1" in variant:
-            config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.1
-        elif "frac0.25" in variant:
-            config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.25
-        elif "frac0.5" in variant:
-            config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.5
-        elif "frac0.75" in variant:
-            config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.75
-        elif "frac0.9" in variant:
-            config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.9
-        else:
-            raise ValueError(f"Need to specify a valid frac_generated")
+    #     if "frac0.1" in variant:
+    #         config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.1
+    #     elif "frac0.25" in variant:
+    #         config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.25
+    #     elif "frac0.5" in variant:
+    #         config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.5
+    #     elif "frac0.75" in variant:
+    #         config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.75
+    #     elif "frac0.9" in variant:
+    #         config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.9
+    #     else:
+    #         raise ValueError(f"Need to specify a valid frac_generated")
 
-        config["dataset_kwargs"]["goal_relabeling_kwargs"] = goal_relabeling_kwargs
+    #     config["dataset_kwargs"]["goal_relabeling_kwargs"] = goal_relabeling_kwargs
 
     if "generatedencdecgoal" in variant:
         config["dataset_kwargs"]["use_generated_goals"] = True 
         config["dataset_kwargs"]["use_encode_decode_goals"] = True 
         config["dataset_kwargs"]["goal_relabeling_strategy"] = "delta_goals_with_generated_encode_decode"
 
-        goal_relabeling_kwargs = dict(goal_delta=[16, 24])
+        # goal_relabeling_kwargs = dict(goal_delta=[16, 24])
+
+        config["dataset_kwargs"]["goal_relabeling_kwargs"]["goal_delta"] = [16, 24]
+        config["dataset_kwargs"]["goal_relabeling_kwargs"]["zero_goal"] = False
 
         if "frac0.5" in variant:
             config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_generated"] = 0.5
@@ -334,7 +433,20 @@ def get_config(config_string):
             config["dataset_kwargs"]["goal_relabeling_kwargs"]["frac_noised_encode_decode"] = 0.25
         else:
             raise ValueError(f"Need to specify a valid frac_generated")
-    
+        
+        if "zerogoal" in variant:
+            config["dataset_kwargs"]["goal_relabeling_kwargs"]["zero_goal"] = True
+
+
+    if "goaldelta50" in variant:
+        config["dataset_kwargs"]["goal_relabeling_kwargs"]["goal_delta"] = [0, 50]
+
+
+    if "goaldelta20long" in variant:
+        config["dataset_kwargs"]["goal_relabeling_kwargs"]["goal_delta"] = [16, 24]
+
+    if "goaldelta5long" in variant:
+        config["dataset_kwargs"]["goal_relabeling_kwargs"]["goal_delta"] = [4, 6]
 
     if "noactnorm" in variant:
         config["dataset_kwargs"]["normalize_actions"] = False
@@ -346,16 +458,15 @@ def get_config(config_string):
         config["save_dir"] = "/opt/ml/code/results"
         config["data_path"] = f"/opt/ml/input/data/{dataset_dir}"
 
-    if "saveeval500" in variant:
-        config["num_steps"] = 500_000
-        config["log_interval"] = 500
-        config["eval_interval"] = 500
-        config["save_interval"] = 500
+    
+
 
 
     for batch_size in [1024, 2048, 4096, 8192]:
         if f"b{batch_size}" in variant:
             config["batch_size"] = batch_size
+
+    
 
     config = ConfigDict(config)
     # return config

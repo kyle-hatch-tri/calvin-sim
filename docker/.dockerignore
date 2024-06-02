@@ -38,3 +38,4 @@ logs
 data
 /opt/ml/code/data
 *data
+results/

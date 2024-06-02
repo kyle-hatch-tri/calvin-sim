@@ -100,6 +100,11 @@ def sample_step(
     # print(f"[sample_step] batch size: {x.shape[0]}. time: {t1 - t0:.3f}")
     # jax.debug.print("[sample_step debug.print] batch_size: {batch_size}. time {t:.3f}", batch_size=x.shape[0], t=t1 - t0)
 
+    # print("context_w:", context_w)
+    # print("prompt_w:", prompt_w)
+
+    # jax.debug.print("context_w: {context_w}. prompt_w: {prompt_w}", context_w=context_w, prompt_w=prompt_w)
+
 
     pred_eps = (
         uncond_pred

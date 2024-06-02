@@ -26,6 +26,7 @@ import random
 from copy import deepcopy
 import shutil
 import pickle
+from functools import partial
 
 from jaxrl_m.data.text_processing import text_processors
 
@@ -70,7 +71,7 @@ logger = logging.getLogger(__name__)
 DEBUG = int(os.getenv("DEBUG"))
 
 if DEBUG: 
-    EP_LEN = 41
+    EP_LEN = 50
     NUM_SEQUENCES = 1
 
     # EP_LEN = int(os.getenv("EP_LEN"))
@@ -256,6 +257,160 @@ def encode_image(
     image_base64 = base64.b64encode(image_bytes)
     image_base64_str = image_base64.decode("utf-8")
     return image_base64_str
+
+
+
+def high_level_vf_filter(vf_agent, language_goal, rgb_obs, goal_images):
+    v = vf_agent.value_function_ranking_lcgc(rgb_obs, goal_images, language_goal)
+    sorted_idxs = np.argsort(v)[::-1]
+    ordered_goal_images = goal_images[sorted_idxs]
+    ordered_vs = v[sorted_idxs]
+
+    best_goal_idx = sorted_idxs[0]
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.5
+    font_color = (0, 255, 0) 
+    line_type = 2  # Line thickness
+
+    frame = []
+    for i in range(ordered_goal_images.shape[0]):
+        img = ordered_goal_images[i]
+        orig_idx = np.arange(goal_images.shape[0])[i]
+        img = cv2.putText(img, f'[{i}] v: {ordered_vs[i]:.3f}', (25, 20), font, font_scale, font_color, line_type)
+        frame.append(img)
+
+    assert len(frame) % 4 == 0, f"len(frame): {len(frame)}"
+    frame_rows = []
+    for row_idx in range(len(frame) // 4):
+        start = row_idx * 4
+        end = start + 4
+        frame_row = np.concatenate([rgb_obs] + frame[start:end], axis=1)
+        frame_rows.append(frame_row)
+
+    query_frame = np.concatenate(frame_rows, axis=0)
+
+    mode = "okay"
+    return best_goal_idx, {"query_frame":query_frame}, mode
+
+
+def low_level_vf_filter(vf_agent, language_goal, rgb_obs, goal_images):
+    v = vf_agent.value_function_ranking(rgb_obs, goal_images)
+    sorted_idxs = np.argsort(v)#[::-1] # have lowest v one first 
+    ordered_goal_images = goal_images[sorted_idxs]
+    ordered_vs = v[sorted_idxs]
+
+    best_goal_idx = sorted_idxs[0]
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.5
+    font_color = (0, 255, 0) 
+    line_type = 2  # Line thickness
+
+    frame = []
+    for i in range(ordered_goal_images.shape[0]):
+        img = ordered_goal_images[i]
+        orig_idx = np.arange(goal_images.shape[0])[i]
+        img = cv2.putText(img, f'[{i}] v: {ordered_vs[i]:.3f}', (25, 20), font, font_scale, font_color, line_type)
+        frame.append(img)
+
+    assert len(frame) % 4 == 0, f"len(frame): {len(frame)}"
+    frame_rows = []
+    for row_idx in range(len(frame) // 4):
+        start = row_idx * 4
+        end = start + 4
+        frame_row = np.concatenate([rgb_obs] + frame[start:end], axis=1)
+        frame_rows.append(frame_row)
+
+    query_frame = np.concatenate(frame_rows, axis=0)
+
+    mode = "okay"
+    return best_goal_idx, {"query_frame":query_frame}, mode
+
+def hooman_in_the_loop_filter(language_goal, rgb_obs, goal_images, dummy=False):
+    rgb_obs = cv2.resize(rgb_obs, (512, 512))
+    new_goal_images = []
+    for goal_img in goal_images:
+        goal_img = cv2.resize(goal_img, (512, 512))
+        new_goal_images.append(goal_img)
+    goal_images = np.stack(new_goal_images, axis=0)
+
+    
+
+    frame = []
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1
+    font_color = (0, 255, 0)  # White color in BGR
+    line_type = 2  # Line thickness
+
+    for i in range(goal_images.shape[0]):
+        img = goal_images[i]
+        img = cv2.putText(img, f'[{i}]', (25, 40), font, font_scale, font_color, line_type)
+        frame.append(img)
+
+    assert len(frame) % 4 == 0, f"len(frame): {len(frame)}"
+    frame_rows = []
+    for row_idx in range(len(frame) // 4):
+        start = row_idx * 4
+        end = start + 4
+        frame_row = np.concatenate([rgb_obs] + frame[start:end], axis=1)
+        frame_rows.append(frame_row)
+
+    query_frame = np.concatenate(frame_rows, axis=0)
+
+    for _ in range(5):
+        try:
+            if dummy or language_goal.strip() == "grasp and lift the red block":
+                best_goal_idx = 0
+                mode = "okay"
+            else:
+                os.makedirs("candidate_goal_images", exist_ok=True)
+                # cv2.imwrite(f"candidate_goal_images.png", query_frame[..., ::-1])
+                cv2.imwrite(os.path.join("candidate_goal_images", f"{language_goal.strip().replace(' ', '_')}.png"), query_frame[..., ::-1])
+
+                print(f"\nThe language instruction is, \"{language_goal}\".")
+                print(f"Which goal image do you want to select?")
+                best_goal_idx = input(f"> ").strip()
+
+                if best_goal_idx == "q":
+                    best_goal_idx = 0 
+                    mode = "quit"
+                elif best_goal_idx == "e":
+                    best_goal_idx = 0 
+                    mode = "end_episode"
+                else:
+                    best_goal_idx = int(best_goal_idx)
+                    print(f"You entered goal image idx: {best_goal_idx}")
+                    mode = "okay"
+
+            assert best_goal_idx in list(range(goal_images.shape[0])), f"choice: {best_goal_idx}, list(range(goal_images.shape[0])): {list(range(goal_images.shape[0]))}"
+
+            break 
+        except:
+            print(f"Invalid input: {best_goal_idx}")
+
+    frame = []
+    for i in range(goal_images.shape[0]):
+        img = goal_images[i]
+        img = cv2.putText(img, f'[{i}]', (25, 40), font, font_scale, font_color, line_type)
+
+        if i == best_goal_idx:
+            img = cv2.rectangle(img, (0, 0), (img.shape[1] - 1, img.shape[0] - 1), font_color, 10)
+
+        frame.append(img)
+
+    assert len(frame) % 4 == 0, f"len(frame): {len(frame)}"
+    frame_rows = []
+    for row_idx in range(len(frame) // 4):
+        start = row_idx * 4
+        end = start + 4
+        frame_row = np.concatenate([rgb_obs] + frame[start:end], axis=1)
+        frame_rows.append(frame_row)
+
+    query_frame = np.concatenate(frame_rows, axis=0)
+
+    return best_goal_idx, {"query_frame":query_frame}, mode
 
 
 
@@ -456,7 +611,8 @@ def query_chat_gpt2(messages, dryrun=False, n_attempts=10):
     # api_key = "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"
     # api_key = "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"
     # api_key = "sk-proj-VtrcFJQBB1W4MEGrdibfT3BlbkFJoSpSwukCtDlxcADLAGLc"
-    api_key = "sk-proj-mr8ZIOp3MVVEVbCNYgFFT3BlbkFJCdSIulmzOATndgxhFDuU" # new one from Blake
+    # api_key = "sk-proj-mr8ZIOp3MVVEVbCNYgFFT3BlbkFJCdSIulmzOATndgxhFDuU" # new one from Blake
+    api_key = "sk-proj-57WuzJ0j1I4hEY61wDSXT3BlbkFJPmgnOBqR1jThDq5d8czD"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
@@ -648,12 +804,14 @@ def chat_gpt_dummy_goal_filtering_fn(language_goal, rgb_obs, goal_images):
     return goal_idx, images_info
 
 class CustomModel(CalvinBaseModel):
-    def __init__(self, agent_config, env_name, agent_type, single_task, oracle_goals_dir, oracle_goals_type, use_temporal_ensembling, diffusion_model_checkpoint_path, gc_policy_checkpoint_path, gc_vf_checkpoint_path, num_denoising_steps, num_samples=1, filtering_method=None, flat_policy=False, diffusion_model_framework="jax"):
+    def __init__(self, agent_config, env_name, agent_type, single_task, oracle_goals_dir, oracle_goals_type, use_temporal_ensembling, diffusion_model_checkpoint_path, gc_policy_checkpoint_path, gc_vf_checkpoint_path, num_denoising_steps, num_samples=1, prompt_w=7.5, context_w=1.5, filtering_method=None, flat_policy=False, diffusion_model_framework="jax", vf_agent_config=None, vf_agent_type=None):
         # Initialize diffusion model
 
         self.num_samples = num_samples
         self.filtering_method = filtering_method
         self.flat_policy = flat_policy
+        self.prompt_w = prompt_w
+        self.context_w = context_w
 
         assert use_temporal_ensembling, f"use_temporal_ensembling: {use_temporal_ensembling}"
 
@@ -679,6 +837,16 @@ class CustomModel(CalvinBaseModel):
         # normalize_actions = "noactnorm" in os.getenv("GC_POLICY_CHECKPOINT") or "nam" in os.getenv("GC_POLICY_CHECKPOINT")
         normalize_actions = False ### TODO better way of handling this. Also, the above line of how it used to be is opposite of what it should be, but probably doesn't matter, since I don't think the value of normalize_actions matters for eval
         self.gc_policy = diffusion_gc_policy.GCPolicy(agent_config, env_name, agent_type, os.getenv("GC_POLICY_CHECKPOINT"), normalize_actions=normalize_actions, use_temporal_ensembling=use_temporal_ensembling, text_processor=text_processor)
+        
+        if self.filtering_method == "high_level_vf":
+            assert vf_agent_config is not None
+            assert vf_agent_type is not None
+            self.vf_agent = diffusion_gc_policy.GCPolicy(vf_agent_config, env_name, vf_agent_type, os.getenv("HIGH_LEVEL_VF_CHECKPOINT"), normalize_actions=False, use_temporal_ensembling=False, text_processor=text_processors["muse_embedding"]())
+        elif self.filtering_method == "low_level_vf":
+            assert vf_agent_config is not None
+            assert vf_agent_type is not None
+            self.vf_agent = diffusion_gc_policy.GCPolicy(vf_agent_config, env_name, vf_agent_type, os.getenv("LOW_LEVEL_VF_CHECKPOINT"), normalize_actions=False, use_temporal_ensembling=False, text_processor=None)
+
         timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
         
         self.log_dir = "results"
@@ -755,22 +923,22 @@ class CustomModel(CalvinBaseModel):
             f.write(self.language_task + "\n")
             f.write(f"success: {success}\n")
         
-        # Log the observation video
-        size = (200, 200)
-        out = cv2.VideoWriter(os.path.join(episode_log_dir, "trajectory.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
-        for i in range(len(self.obs_image_seq)):
-            rgb_img = cv2.cvtColor(self.obs_image_seq[i], cv2.COLOR_RGB2BGR)
-            out.write(rgb_img)
-        out.release()
+        # # Log the observation video
+        # size = (200, 200)
+        # out = cv2.VideoWriter(os.path.join(episode_log_dir, "trajectory.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+        # for i in range(len(self.obs_image_seq)):
+        #     rgb_img = cv2.cvtColor(self.obs_image_seq[i], cv2.COLOR_RGB2BGR)
+        #     out.write(rgb_img)
+        # out.release()
 
         if not self.flat_policy:
-            # Log the goals video
-            size = (200, 200)
-            out = cv2.VideoWriter(os.path.join(episode_log_dir, "goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
-            for i in range(len(self.goal_image_seq)):
-                rgb_img = cv2.cvtColor(self.goal_image_seq[i], cv2.COLOR_RGB2BGR)
-                out.write(rgb_img)
-            out.release()
+        #     # Log the goals video
+        #     size = (200, 200)
+        #     out = cv2.VideoWriter(os.path.join(episode_log_dir, "goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+        #     for i in range(len(self.goal_image_seq)):
+        #         rgb_img = cv2.cvtColor(self.goal_image_seq[i], cv2.COLOR_RGB2BGR)
+        #         out.write(rgb_img)
+        #     out.release()
 
             # Log the combined image
             size = (400, 200)
@@ -779,34 +947,24 @@ class CustomModel(CalvinBaseModel):
                 rgb_img = cv2.cvtColor(self.combined_images[i], cv2.COLOR_RGB2BGR)
                 out.write(rgb_img)
             out.release()
-
-        # # Log the value function rankings 
-        # if self.num_samples > 1 and self.episode_counter % self.vranking_save_freq == 0:
-        #     for i in range(len(self.vranked_goal_images_seq)):
-        #         timestep_dir = os.path.join(episode_log_dir, f"vranked_goal_images", f"timestep_{i * self.subgoal_max:03d}")
-        #         os.makedirs(timestep_dir, exist_ok=True)
-        #         for vpred, goal_image in self.vranked_goal_images_seq[i].items():
-        #             rgb_img = cv2.cvtColor(goal_image, cv2.COLOR_RGB2BGR)
-        #             cv2.imwrite(os.path.join(timestep_dir, f"{vpred}.png"), rgb_img)
-
         
-        # Log the actions
-        np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
+        # # Log the actions
+        # np.save(os.path.join(episode_log_dir, "actions.npy"), np.array(self.action_seq))
 
-        np.save(os.path.join(episode_log_dir, "retrospective_true_goals.npy"), np.array(self.retrospective_true_goals)) 
+        # np.save(os.path.join(episode_log_dir, "retrospective_true_goals.npy"), np.array(self.retrospective_true_goals)) 
 
-        if not self.flat_policy:
-            np.save(os.path.join(episode_log_dir, "generated_goals.npy"), np.array(self.generated_goals))
+        # if not self.flat_policy:
+        #     np.save(os.path.join(episode_log_dir, "generated_goals.npy"), np.array(self.generated_goals))
 
 
-        if not self.flat_policy:
-            size = (400, 200)
-            out = cv2.VideoWriter(os.path.join(episode_log_dir, "generated_vs_retrospective_true_goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 2, size)
-            for i in range(len(self.generated_goals)):
-                img = np.concatenate([self.generated_goals[i], self.retrospective_true_goals[i]], axis=1)
-                rgb_img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                out.write(rgb_img)
-            out.release()
+        # if not self.flat_policy:
+        #     size = (400, 200)
+        #     out = cv2.VideoWriter(os.path.join(episode_log_dir, "generated_vs_retrospective_true_goals.mp4"), cv2.VideoWriter_fourcc(*'DIVX'), 2, size)
+        #     for i in range(len(self.generated_goals)):
+        #         img = np.concatenate([self.generated_goals[i], self.retrospective_true_goals[i]], axis=1)
+        #         rgb_img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        #         out.write(rgb_img)
+        #     out.release()
 
         if initial_images is not None:
             cv2.imwrite(os.path.join(episode_log_dir, "initial_images.png"), initial_images[..., ::-1])
@@ -922,6 +1080,14 @@ class CustomModel(CalvinBaseModel):
             return chat_gpt_goal_pairwise_filtering_fn(goal, rgb_obs, goal_images)
         elif self.filtering_method == "chat_gpt_dummy":
             return chat_gpt_dummy_goal_filtering_fn(goal, rgb_obs, goal_images)
+        elif self.filtering_method == "human":
+            return hooman_in_the_loop_filter(goal, rgb_obs, goal_images)
+        elif self.filtering_method == "human_dummy":
+            return hooman_in_the_loop_filter(goal, rgb_obs, goal_images, dummy=True)
+        elif self.filtering_method == "high_level_vf":
+            return high_level_vf_filter(self.vf_agent, goal, rgb_obs, goal_images)
+        elif self.filtering_method == "low_level_vf":
+            return low_level_vf_filter(self.vf_agent, goal, rgb_obs, goal_images)
         else:
             raise NotImplementedError(f"Goal images filtering method \"{self.filtering_method}\" is not implemented.")
 
@@ -938,6 +1104,8 @@ class CustomModel(CalvinBaseModel):
         self.language_task = goal
         self.subtask = subtask
 
+        mode = "okay"
+
         if not self.flat_policy:
  
             # If we need to, generate a new goal image
@@ -947,7 +1115,7 @@ class CustomModel(CalvinBaseModel):
 
                 if self.oracle_goals is None:
                     t0 = time.time()
-                    goal_images = self.diffusion_model.generate(self.language_task, rgb_obs)
+                    goal_images = self.diffusion_model.generate(self.language_task, rgb_obs, prompt_w=self.prompt_w, context_w=self.context_w)
                     t1 = time.time()
                     # print(f"t1 - t0: {t1 - t0:.3f}") 
                 else:
@@ -966,7 +1134,9 @@ class CustomModel(CalvinBaseModel):
                 
 
                 if self.num_samples > 1:
-                    goal_idx, goal_images_info = self.goal_filtering_fn(goal, rgb_obs, goal_images)
+                    goal_idx, goal_images_info, mode = self.goal_filtering_fn(goal, rgb_obs, goal_images)
+
+                    
                     
 
                     
@@ -1013,7 +1183,7 @@ class CustomModel(CalvinBaseModel):
         # Update progress bar
         self.pbar.update(1)
 
-        return action_cmd
+        return action_cmd, mode
 
 
 def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_plan_tsne=False):
@@ -1041,7 +1211,6 @@ def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_
 
     eval_sequences = get_sequences(NUM_SEQUENCES)
 
-    import ipdb; ipdb.set_trace()
 
     pickle_object(os.path.join(eval_log_dir, "saved_state", "eval_sequences.pkl"), eval_sequences)
 
@@ -1057,7 +1226,7 @@ def evaluate_policy(model, env, epoch=0, eval_log_dir=None, debug=False, create_
     for initial_state, eval_sequence in eval_sequences:
         print("initial_state:", initial_state)
         print("eval_sequence:", eval_sequence)
-        result = evaluate_sequence(env, model, task_oracle, initial_state, eval_sequence, val_annotations, plans, debug)
+        result, _ = evaluate_sequence(env, model, task_oracle, initial_state, eval_sequence, val_annotations, plans, debug)
         results.append(result)
         if not debug:
             eval_sequences.set_description(
@@ -1117,37 +1286,60 @@ def evaluate_policy_singletask(model, env, epoch=0, eval_log_dir=None, debug=Fal
 
     # chat_gpt_tasks = ["push_pink_block_right", "push_blue_block_right", "push_red_block_right", "push_into_drawer"]
     chat_gpt_tasks = ["push_red_block_right", "push_blue_block_right", "push_pink_block_right", "push_pink_block_left", "turn_off_led", "push_into_drawer"]
+    # chat_gpt_tasks = ["push_into_drawer"]
 
-    eval_sequences = []
-    for task_name in tasks.keys():
-        for _ in range(NUM_SEQUENCES):
-            
-            if model.filtering_method == "chat_gpt" or model.filtering_method == "chat_gpt_dummy" or model.filtering_method == "chat_gpt_pairwise":
-                if task_name not in chat_gpt_tasks:
-                    continue 
+    # hooman_tasks = ["lift_red_block_table"] 
+
+    if model.filtering_method in ["human", "human_dummy", "high_level_vf"]:
+        initial_state = deepcopy(base_initial_state)
+        initial_state["red_block"] = "table"
+        initial_state["blue_block"] = "table"
+        initial_state["pink_block"] = "slider_right"
+        
+        # Make sure the initial state has the correct starting conditions for that task 
+        condition = tasks["lift_red_block_table"][0]["condition"]
+        for key, val in condition.items():
+            if isinstance(val, list):
+                initial_state[key] = val[0]
             else:
-                if task_name in skip_tasks:
-                    continue
+                initial_state[key] = val
 
+        eval_sequences = [(initial_state, ("lift_red_block_table", "place_in_slider")) for _ in range(NUM_SEQUENCES)]
+    else:
 
-            # initial_state = base_initial_state.copy()
-            initial_state = deepcopy(base_initial_state)
-            
-            # Make sure the initial state has the correct starting conditions for that task 
-            condition = tasks[task_name][0]["condition"]
-            for key, val in condition.items():
-                if isinstance(val, list):
-                    initial_state[key] = val[0]
+        eval_sequences = []
+        for task_name in tasks.keys():
+            for _ in range(NUM_SEQUENCES):
+                
+                if model.filtering_method == "chat_gpt" or model.filtering_method == "chat_gpt_dummy" or model.filtering_method == "chat_gpt_pairwise":
+                    if task_name not in chat_gpt_tasks:
+                        continue 
+                # if model.filtering_method == "human" or model.filtering_method == "human_dummy":
+                #     if task_name not in hooman_tasks:
+                #         continue 
                 else:
-                    initial_state[key] = val
+                    if task_name in skip_tasks:
+                        continue
 
-            # Manually make sure for the lift_blue_block_slider task that the pink block is not on top of the blue block in the slider 
-            if task_name == "lift_blue_block_slider":
-                initial_state["pink_block"] = "table"
-            if task_name == "lift_red_block_slider":
-                initial_state["pink_block"] = "table"
 
-            eval_sequences.append((initial_state, (task_name,)))
+                # initial_state = base_initial_state.copy()
+                initial_state = deepcopy(base_initial_state)
+                
+                # Make sure the initial state has the correct starting conditions for that task 
+                condition = tasks[task_name][0]["condition"]
+                for key, val in condition.items():
+                    if isinstance(val, list):
+                        initial_state[key] = val[0]
+                    else:
+                        initial_state[key] = val
+
+                # Manually make sure for the lift_blue_block_slider task that the pink block is not on top of the blue block in the slider 
+                if task_name == "lift_blue_block_slider":
+                    initial_state["pink_block"] = "table"
+                if task_name == "lift_red_block_slider":
+                    initial_state["pink_block"] = "table"
+
+                eval_sequences.append((initial_state, (task_name,)))
 
     
     if DEBUG:
@@ -1175,7 +1367,7 @@ def evaluate_policy_singletask(model, env, epoch=0, eval_log_dir=None, debug=Fal
         # initial_state, eval_sequence = eval_sequences[eval_idx]
         print("initial_state:", initial_state)
         print("eval_sequence:", eval_sequence)
-        result = evaluate_sequence(env, model, task_oracle, initial_state, eval_sequence, val_annotations, plans, debug)
+        result, _ = evaluate_sequence(env, model, task_oracle, initial_state, eval_sequence, val_annotations, plans, debug)
         results.append(result)
         if not debug:
             eval_sequences.set_description(
@@ -1210,17 +1402,41 @@ def evaluate_policy_libero(model, env, eval_log_dir=None, fix_init_state=False):
         eval_tasks = [task for task in eval_tasks if task not in skip_tasks]
 
 
-
-
-    
-
     if DEBUG:
         eval_tasks = eval_tasks[:2]
+
+
+    if model.filtering_method in ["human", "human_dummy", "high_level_vf"]:
+        # eval_tasks = [
+        #     "STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy",
+        #     # "KITCHEN_SCENE2_put_the_black_bowl_at_the_front_on_the_plate",
+        #     # "KITCHEN_SCENE5_put_the_black_bowl_on_top_of_the_cabinet",
+        #     "KITCHEN_SCENE9_put_the_frying_pan_on_top_of_the_cabinet",
+        #     # "LIVING_ROOM_SCENE2_pick_up_the_tomato_sauce_and_put_it_in_the_basket",
+        #     # "LIVING_ROOM_SCENE4_pick_up_the_black_bowl_on_the_left_and_put_it_in_the_tray",
+
+        #     # "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate",
+        #     # "pick_up_the_bbq_sauce_and_place_it_in_the_basket",
+        #     "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet",
+        #     "KITCHEN_SCENE6_close_the_microwave",
+        #     # "LIVING_ROOM_SCENE6_put_the_white_mug_on_the_plate",
+        #     "STUDY_SCENE2_pick_up_the_book_and_place_it_in_the_front_compartment_of_the_caddy",
+
+        # ]
+        pass 
+    elif model.filtering_method in ["low_level_vf"]:
+        eval_tasks = [
+            "STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy",
+            "KITCHEN_SCENE9_put_the_frying_pan_on_top_of_the_cabinet",
+            "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet",
+            "KITCHEN_SCENE6_close_the_microwave",
+            "STUDY_SCENE2_pick_up_the_book_and_place_it_in_the_front_compartment_of_the_caddy",
+        ]
 
     for task_idx, eval_task in enumerate(eval_tasks):
         progress_bar = trange(NUM_SEQUENCES, position=0, leave=True)
         for ep_idx in progress_bar:
-            success, success_sequence_length, num_subtask_successes = rollout_libero(env, model, eval_task, plans, fix_init_state=fix_init_state, ep_idx=ep_idx)
+            success, success_sequence_length, num_subtask_successes, end_early = rollout_libero(env, model, eval_task, plans, fix_init_state=fix_init_state, ep_idx=ep_idx)
             # results[eval_task].append((success, success_sequence_length, num_subtask_successes))
             # results[eval_task].append((success, success_sequence_length, num_subtask_successes))
 
@@ -1232,6 +1448,11 @@ def evaluate_policy_libero(model, env, eval_log_dir=None, fix_init_state=False):
             # num_subtask_successeses[eval_task].append(num_subtask_successes)
             progress_bar.set_description(f"[task {task_idx + 1}/{len(eval_tasks)} ep {ep_idx + 1}/{NUM_SEQUENCES}] ")
             # progress_bar.set_description(" ".join([f"{i + 1}/5 : {v * 100:.1f}% |" for i, v in enumerate(count_success(results))]) + "|")
+
+            if end_early:
+                break 
+
+
     print_and_save_libero(results, eval_tasks, eval_log_dir)
     return results
 
@@ -1272,10 +1493,21 @@ def rollout_libero(env, model, eval_task, plans, fix_init_state=False, ep_idx=0)
     # num_subtask_successes = []
     for step in range(EP_LEN):
         # make sure eval_task is the right thing to pass in for subtask, or if I need to do env.current_task. Or at least assert eval_task == env.current_task
-        action = model.step(obs, lang_annotation, eval_task, ep_idx=ep_idx)
+        end_early = False
+        action, mode = model.step(obs, lang_annotation, eval_task, ep_idx=ep_idx)
 
         if isinstance(action, int) and action == -1:
             print("Ran out of hard coded goal images")
+            break 
+
+        if mode == "end_episode":
+            print("mode == \"end_episode\", ending episode early")
+            break 
+
+
+        if mode == "quit":
+            print("mode == \"quit\", exiting out of eval loop")
+            end_early = True
             break 
 
         if step == 0:
@@ -1298,7 +1530,7 @@ def rollout_libero(env, model, eval_task, plans, fix_init_state=False, ep_idx=0)
         print(colored("fail", "red"))
 
     model.save_info(success, initial_images=initial_images)
-    return int(success), info["success_sequence_length"], info["num_subtask_successes"]
+    return int(success), info["success_sequence_length"], info["num_subtask_successes"], end_early
 
 
 
@@ -1318,12 +1550,12 @@ def evaluate_sequence(env, model, task_checker, initial_state, eval_sequence, va
         print(f"Evaluating sequence: {' -> '.join(eval_sequence)}")
         print("Subtask: ", end="")
     for subtask in eval_sequence:
-        success = rollout(env, model, task_checker, subtask, val_annotations, plans, debug)
+        success, end_early = rollout(env, model, task_checker, subtask, val_annotations, plans, debug)
         if success:
             success_counter += 1
         else:
-            return success_counter
-    return success_counter
+            return success_counter, end_early
+    return success_counter, end_early 
 
 
 def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
@@ -1344,7 +1576,7 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
     print("lang_annotation:", lang_annotation)
 
     for step in range(EP_LEN):
-        action = model.step(obs, lang_annotation, subtask)
+        action, _ = model.step(obs, lang_annotation, subtask)
 
         if isinstance(action, int) and action == -1:
             print("Ran out of hard coded goal images")
@@ -1371,14 +1603,14 @@ def rollout(env, model, task_oracle, subtask, val_annotations, plans, debug):
             model.retrospective_true_goals.append(rgb_obs)
             model.retrospective_true_goals = model.retrospective_true_goals[1:]
             model.save_info(True)
-            return True
+            return True, False
     if debug:
         print(colored("fail", "red"), end=" ")
     model.retrospective_true_goals = model.retrospective_true_goals[1:]
     model.retrospective_true_goals.append(rgb_obs)
     model.save_info(False)
     print(colored("fail", "red"), end=" ")
-    return False
+    return False, False
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Evaluate a trained model on multistep sequences with language goals.")
@@ -1470,6 +1702,15 @@ def parse_arguments():
     )
 
 
+    parser.add_argument(
+        "--prompt_w", type=float, default=7.5, help="Use this option to evaluate a custom model architecture."
+    )
+
+    parser.add_argument(
+        "--context_w", type=float, default=1.5, help="Use this option to evaluate a custom model architecture."
+    )
+
+
 
     # parser.add_argument("--debug", action="store_true", help="Print debug info and visualize environment.")
     parser.add_argument("--debug", type=int, default=0)
@@ -1484,6 +1725,8 @@ def parse_arguments():
     parser.add_argument("--oracle_goals_dir", default=None, type=str, help="Where to log the evaluation results.")
 
     parser.add_argument("--agent_config_string", default="calvin", type=str, help="Where to log the evaluation results.")
+
+    parser.add_argument("--vf_agent_config_string", default=None, type=str, help="Where to log the evaluation results.")
 
     parser.add_argument("--oracle_goals_type", default=None, choices=[None, "generated", "retrospective_true", "dataset_true"], type=str, help="Where to log the evaluation results.")
 
@@ -1505,8 +1748,15 @@ def main():
     # evaluate a custom model
     agent_config, env_name, agent_type, _ = get_config(args.agent_config_string)
 
-    model = CustomModel(agent_config, env_name, agent_type, args.single_task, args.oracle_goals_dir, args.oracle_goals_type, args.use_temporal_ensembling, args.diffusion_model_checkpoint_path, args.gc_policy_checkpoint_path, args.gc_vf_checkpoint_path, args.num_denoising_steps, num_samples=args.num_samples, filtering_method=args.filtering_method, flat_policy=args.flat_policy, diffusion_model_framework=args.diffusion_model_framework)
+    if args.filtering_method in ["high_level_vf", "low_level_vf"]:
+        vf_agent_config, _, vf_agent_type, _ = get_config(args.vf_agent_config_string)
+    else:
+        vf_agent_config, vf_agent_type = None, None
+
+
+    model = CustomModel(agent_config, env_name, agent_type, args.single_task, args.oracle_goals_dir, args.oracle_goals_type, args.use_temporal_ensembling, args.diffusion_model_checkpoint_path, args.gc_policy_checkpoint_path, args.gc_vf_checkpoint_path, args.num_denoising_steps, num_samples=args.num_samples, prompt_w=args.prompt_w, context_w=args.context_w, filtering_method=args.filtering_method, flat_policy=args.flat_policy, diffusion_model_framework=args.diffusion_model_framework, vf_agent_config=vf_agent_config, vf_agent_type=vf_agent_type)
     env = make_env(env_name, args.dataset_path)
+    
 
     if env_name == "calvin" or env_name == "calvinlcbc":
         assert not args.debug

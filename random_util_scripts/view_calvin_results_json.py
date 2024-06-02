@@ -25,6 +25,9 @@ RESULTS_DIR = "/home/kylehatch/Desktop/hidql/results_oracle_goals_calvin/single_
 # RESULTS_DIR = "/home/kylehatch/Desktop/hidql/calvin-sim/results/single_task/calvin/test1_400smthlibs1_2024.02.22_19.59.48/40000/calvin/gcdiffusion/default/seed_2/20240227_191322/checkpoint_50000/2024.03.25_13.05.28"
 
 
+"/home/kylehatch/Desktop/hidql/saved_calvin_eval_results/results/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiff/seed_0/20240228_024329/checkpoint_150000/chatgptdummy16slibs22024.04.26_12.27.01"
+
+
 skip_tasks = ["lift_red_block_drawer", "lift_blue_block_drawer", "lift_pink_block_drawer", "place_in_slider", "place_in_drawer", "stack_block", "unstack_block", "push_pink_block_right"]
 
 with open(os.path.join(RESULTS_DIR, "results.json"), "r") as f:

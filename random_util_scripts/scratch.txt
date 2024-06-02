@@ -1,0 +1,4 @@
+& LC Diffusion Policy & 8.2\% & 15.3\% & -\% & -\% & 
+& Base SUSIE & 19.6\% & 42.7\% & -\% & -\% & 
+& SUSIE + unsynced image augmentations & 17.3\% & 35.4\% & 63.7\% & 80.2\% & 
+& SUSIE + unsynced image augmentations + high level task filtering, 16 samples & 19.1\% & 43.6\% & 61.6\% & 79.0\% & 

@@ -1,15 +1,13 @@
 import json
 from jaxrl_m.vision import encoders
 from jaxrl_m.data.calvin_dataset import CalvinDataset
+from jaxrl_m.data.bridge_dataset import BridgeDataset
 import jax
 from jaxrl_m.agents import agents
 import numpy as np
 import os
 import orbax.checkpoint
 from jaxrl_m.agents import agents
-
-
-
 
 
 
@@ -36,6 +34,12 @@ class GCPolicy:
                 "mini_dataset_libero/traj1.tfrecord"
             ]]
             use_float64 = True
+        elif "bridge" in environment:
+            train_paths = [[
+                "mini_dataset_bridge/0.tfrecord",
+                "mini_dataset_bridge/1.tfrecord"
+            ]]
+            use_float64 = False
         else:
             raise ValueError(f"Unsupported environment: \"{environment}\".")
         
@@ -122,18 +126,37 @@ class GCPolicy:
 
         # agent_config.dataset_kwargs["use_float64"] = False
 
-        train_data = CalvinDataset(
-            train_paths,
-            42,
-            batch_size=256,
-            num_devices=1,
-            train=True,
-            action_proprio_metadata=ACTION_PROPRIO_METADATA,
-            sample_weights=None,
-            **agent_config.dataset_kwargs,
-        )
-        train_data_iter = train_data.iterator()
-        example_batch = next(train_data_iter)
+        if "bridge" in environment:
+            example_actions = np.zeros((1, 7), dtype=np.float32)
+            example_obs = {
+            "image": np.zeros((1, 200, 200, 3), dtype=np.uint8)
+            }
+
+            example_goal = {
+                "image": np.zeros((1, 200, 200, 3), dtype=np.uint8)
+            }
+
+            example_batch = {
+                "observations": example_obs,
+                "actions": example_actions,
+                "goals": example_goal,
+            }
+        else:
+            train_data = CalvinDataset(
+                train_paths,
+                42,
+                batch_size=256,
+                num_devices=1,
+                train=True,
+                action_proprio_metadata=ACTION_PROPRIO_METADATA,
+                sample_weights=None,
+                **agent_config.dataset_kwargs,
+            )
+            train_data_iter = train_data.iterator()
+            example_batch = next(train_data_iter)
+            
+        
+
 
         example_batch["goals"]["language"] = np.zeros((example_batch["goals"]["image"].shape[0], 512), dtype=np.float32)
 
@@ -191,6 +214,22 @@ class GCPolicy:
         stacked_image_obs = np.repeat(image_obs[None], goal_images.shape[0], axis=0)
         v = self.agent.value_function({"image" : stacked_image_obs}, {"image" : goal_images})
         return np.array(v.tolist()) 
+    
+    def value_function_ranking_lcgc(self, image_obs : np.ndarray, goal_images : np.ndarray, language_goal):
+        assert len(goal_images.shape) == len(image_obs.shape) + 1
+        
+        stacked_image_obs = np.repeat(image_obs[None], goal_images.shape[0], axis=0)
+
+        instruction = self.text_processor.encode(language_goal)
+        stacked_language_instruction = np.repeat(instruction, goal_images.shape[0], axis=0)
+
+        v = self.agent.value_function({"image" : stacked_image_obs}, {"image" : goal_images, "language":stacked_language_instruction})
+        return np.array(v.tolist()) 
+    
+
+
+
+    
 
     def predict_action(self, image_obs : np.ndarray, goal_image : np.ndarray):
         if "diffusion" in self.agent_type or "public" in self.agent_type or "ddpm" in self.agent_type:

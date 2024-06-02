@@ -258,4 +258,199 @@ python3 -u view_eval_outputs3.py \
 s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/public_model/checkpoint_only/liberosplit2/lcdiffusion/auggoaldiff/seed_1/20240410_004925/checkpoint_1000000/2024.04.12_22.49.08 \
 s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/public_model/checkpoint_only/liberosplit2/lcdiffusion/auggoaldiff/seed_2/20240410_004925/checkpoint_1000000/2024.04.12_22.49.03 \
 s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/public_model/checkpoint_only/liberosplit2/lcdiffusion/auggoaldiff/seed_3/20240410_004925/checkpoint_1000000/2024.04.12_22.49.03
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.04.26_23.13.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_250000/2024.04.26_23.13.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.04.26_23.13.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_250000/2024.04.26_23.13.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_250000/2024.04.26_23.13.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.04.26_23.13.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_250000/2024.04.26_23.13.45
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.04.26_23.07.35 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.04.26_23.07.35 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.04.26_23.07.35 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.04.26_23.07.34 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_250000/2024.04.26_23.07.35 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_250000/2024.04.26_23.07.34 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_250000/2024.04.26_23.07.34 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemakerhorizon5_2024.04.25_01.45.24/40000/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_250000/2024.04.26_23.07.34
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.04.28_00.16.06
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_250000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_250000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_250000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.01_00.51.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_250000/2024.05.01_00.51.33
+
+
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.05.01_00.49.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.01_00.49.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.01_00.49.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.01_00.49.42 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_250000/2024.05.01_00.49.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_250000/2024.05.01_00.49.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_250000/2024.05.01_00.49.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_250000/2024.05.01_00.49.41
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_2/20240507_010213/checkpoint_300000/2024.05.07_19.58.56 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_2/20240507_010213/checkpoint_150000/2024.05.07_19.58.57 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_0/20240507_010213/checkpoint_300000/2024.05.07_19.58.56 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_0/20240507_010213/checkpoint_150000/2024.05.07_19.58.57 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_3/20240507_010213/checkpoint_300000/2024.05.07_19.58.57 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_3/20240507_010213/checkpoint_150000/2024.05.07_19.58.57 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_1/20240507_010213/checkpoint_150000/2024.05.07_19.58.57 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/default2/seed_1/20240507_010213/checkpoint_300000/2024.05.07_19.58.58
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_0/20240507_010012/checkpoint_150000/2024.05.10_20.47.35 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_1/20240507_010012/checkpoint_150000/2024.05.10_20.47.36 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_2/20240507_010012/checkpoint_150000/2024.05.11_01.37.28 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_3/20240507_010012/checkpoint_150000/2024.05.11_01.37.28 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_0/20240507_010012/checkpoint_300000/2024.05.11_07.29.05 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_1/20240507_010012/checkpoint_300000/2024.05.11_07.29.05 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_2/20240507_010012/checkpoint_300000/2024.05.11_08.35.02 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/default2/seed_3/20240507_010012/checkpoint_300000/2024.05.11_08.35.02
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.05.11_21.59.14 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.11_21.59.14 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.11_21.59.14 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.11_21.59.14 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_300000/2024.05.11_21.59.14 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_300000/2024.05.11_21.59.14 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_300000/2024.05.11_21.59.07 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_300000/2024.05.11_21.59.14
+
+
+# calvin, 4 samples
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.16_02.53.44 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_300000/2024.05.16_02.53.51 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.05.16_02.53.51 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_300000/2024.05.16_02.53.51 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.16_02.53.51 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_300000/2024.05.16_02.53.51 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_300000/2024.05.16_02.53.51 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.16_02.53.52
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.05.16_02.54.29 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.16_02.54.29 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.16_02.54.29 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.16_02.54.29 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_300000/2024.05.16_02.54.29 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_300000/2024.05.16_02.54.21 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_300000/2024.05.16_02.54.29 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_300000/2024.05.16_02.54.29 
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_150000/2024.05.16_02.54.55 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.16_02.54.55 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.16_02.54.50 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.16_02.54.55 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_300000/2024.05.16_02.54.55 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_300000/2024.05.16_02.54.55 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_300000/2024.05.16_02.54.56 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/public_model/checkpoint_only/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_300000/2024.05.16_02.54.56 
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_0/20240516_025123/checkpoint_150000/2024.05.17_02.25.08 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_1/20240516_025123/checkpoint_150000/2024.05.17_02.25.07 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_2/20240516_025123/checkpoint_150000/2024.05.17_02.25.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_3/20240516_025123/checkpoint_150000/2024.05.17_02.25.08 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_0/20240516_025123/checkpoint_300000/2024.05.17_02.25.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_1/20240516_025123/checkpoint_300000/2024.05.17_02.25.08 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_2/20240516_025123/checkpoint_300000/2024.05.17_02.25.08 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_3/20240516_025123/checkpoint_300000/2024.05.17_02.25.08
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_0/20240516_025123/checkpoint_150000/2024.05.18_22.41.40 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_1/20240516_025123/checkpoint_150000/2024.05.18_22.41.40 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_2/20240516_025123/checkpoint_150000/2024.05.18_22.41.40 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_3/20240516_025123/checkpoint_150000/2024.05.18_22.41.40 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_0/20240516_025123/checkpoint_300000/2024.05.18_22.41.33 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_1/20240516_025123/checkpoint_300000/2024.05.18_22.41.40 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_2/20240516_025123/checkpoint_300000/2024.05.18_22.41.40 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit210shot/test1_sagemaker400lbs210shot_2024.05.16_04.05.55/40000/liberosplit210shot/gcdiffusion/auggoaldiff/seed_3/20240516_025123/checkpoint_300000/2024.05.18_22.41.40
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_1/20240517_232659/checkpoint_150000/2024.05.19_23.27.53 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_1/20240517_232659/checkpoint_300000/2024.05.19_23.27.54 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_0/20240517_232659/checkpoint_300000/2024.05.19_23.27.53 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_0/20240517_232659/checkpoint_150000/2024.05.19_23.27.53 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_3/20240517_232659/checkpoint_300000/2024.05.19_23.27.53 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_3/20240517_232659/checkpoint_150000/2024.05.19_23.27.53 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_2/20240517_232659/checkpoint_150000/2024.05.19_23.27.53 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmliberogoal/test1_sagemaker400lbsatmliberogoal_2024.05.17_21.04.14/40000/liberosplitatmliberogoal/gcdiffusion/auggoaldiff/seed_2/20240517_232659/checkpoint_300000/2024.05.19_23.27.54 
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.04.28_00.16.06
+
+
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_0/20240227_194024/checkpoint_250000/2024.05.01_00.53.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_150000/2024.05.01_00.53.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_1/20240227_194024/checkpoint_250000/2024.05.01_00.53.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_150000/2024.05.01_00.53.10 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_2/20240227_194024/checkpoint_250000/2024.05.01_00.53.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_150000/2024.05.01_00.53.09 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/calvin/test1_sagemaker400lbs2horizon5_2024.04.27_05.33.37/40000/calvin/gcdiffusion/auggoaldiff/seed_3/20240227_194024/checkpoint_250000/2024.05.01_00.53.10
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_0/20240517_232133/checkpoint_150000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_1/20240517_232134/checkpoint_150000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_2/20240517_232134/checkpoint_150000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_3/20240517_232133/checkpoint_150000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_0/20240517_232133/checkpoint_300000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_1/20240517_232134/checkpoint_300000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_2/20240517_232134/checkpoint_300000/2024.05.19_23.02.25 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplitatmlibero90/test1_sagemaker400lbsatmlibero90_2024.05.17_21.03.03/40000/liberosplitatmlibero90/gcdiffusion/auggoaldiff/seed_3/20240517_232133/checkpoint_300000/2024.05.19_23.02.25 
+
+
+
+python3 -u random_util_scripts/view_eval_outputs3.py \
+--s3_dirs s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_0/20240520_230431/checkpoint_150000/2024.05.21_23.39.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_1/20240520_230431/checkpoint_150000/2024.05.21_23.39.42 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_2/20240520_230431/checkpoint_150000/2024.05.21_23.39.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_3/20240520_230431/checkpoint_150000/2024.05.21_23.39.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_0/20240520_230431/checkpoint_300000/2024.05.21_23.39.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_1/20240520_230431/checkpoint_300000/2024.05.21_23.39.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_2/20240520_230431/checkpoint_300000/2024.05.21_23.39.41 \
+s3://kyle-sagemaker-training-outputs/eval-outputs/liberosplit2/test1_400smthlibs2_2024.02.23_14.20.24/40000/liberosplit2/gcdiffusion/auggoaldiffgoaldelta20long/seed_3/20240520_230431/checkpoint_300000/2024.05.21_23.39.42
+
+
+
 """

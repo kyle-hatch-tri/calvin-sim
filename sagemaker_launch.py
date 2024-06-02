@@ -52,6 +52,7 @@ def launch(args):
         input_mode = 'File'
         training_inputs = {}
         training_inputs["high_level"] = 'file:///' + launch_config["high_level_policy_local_path"].strip("/") + f"/params_ema"
+        training_inputs["high_level_vf"] = 'file:///' + launch_config["high_level_vf_local_path"].strip("/") + "/"
 
         for policy_name, policy_dict in launch_config["low_level_policy"].items():
             for seed in policy_dict["seeds"]:
@@ -68,6 +69,7 @@ def launch(args):
 
         training_inputs = {}
         training_inputs["high_level"] = launch_config["high_level_policy_s3_uri"].strip("/") + f"/params_ema"
+        training_inputs["high_level_vf"] = launch_config["high_level_vf_s3_uri"].strip("/") + "/"
 
         for policy_name, policy_dict in launch_config["low_level_policy"].items():
             prefix = launch_config["low_level_policy"][policy_name]["s3_uri"].split(bucket_name)[-1].strip("/")
@@ -162,41 +164,27 @@ def launch(args):
     keep_alive_period_in_seconds = 0
     max_run = 60 * 60 * 24 * 5
 
-
-
-
-    # gc_policy_checkpoint_paths = []
-    # for key, val in training_inputs.items():
-    #     if "high_level" in key:
-    #         continue 
-        
-    #     gc_policy_checkpoint_paths.append(f"{key}|{val}")
-    # gc_policy_checkpoint_paths = ",".join(gc_policy_checkpoint_paths)
-
     
 
     environment = {
         'WANDB_API_KEY': launch_config["launch_args"]["wandb_api_key"],
         'WANDB_ENTITY': "tri",
-        # 'ENVIRONMENT': "calvin",
         "AGENT_CONFIG_STRING":launch_config["eval_args"]["agent_config_string"],
-        # 'DIFFUSION_MODEL_CHECKPOINT':"/opt/ml/input/data/high_level",
-        # 'BASE_GC_POLICY_CHECKPOINT':"/opt/ml/input/data/",
+        "VF_AGENT_CONFIG_STRING":launch_config["eval_args"]["vf_agent_config_string"],
         'NUM_EVAL_SEQUENCES':str(launch_config["eval_args"]["num_eval_sequences"]),
         "EP_LEN":str(launch_config["eval_args"]["ep_len"]),
         "SUBGOAL_MAX":str(launch_config["eval_args"]["subgoal_max"]),
 
         'DIFFUSION_MODEL_CHECKPOINT_PATH':training_inputs["high_level"],
-        # "GC_POLICY_CHECKPOINT_PATHS": gc_policy_checkpoint_paths,
-        # "GC_VF_CHECKPOINT_PATH": gc_vf_checkpoint_path,
+        'HIGH_LEVEL_VF_CHECKPOINT_PATH':training_inputs["high_level_vf"],
         "SAVE_TO_S3":str(launch_config["launch_args"]["save_to_s3"]),
         "S3_SAVE_URI":str(launch_config["launch_args"]["s3_save_uri"]),
 
         "DEBUG":str(launch_config["launch_args"]["debug"]),
         "NUM_DENOISING_STEPS":str(launch_config["eval_args"]["num_denoising_steps"]),
         "NUM_SAMPLES":str(launch_config["eval_args"]["num_samples"]),
-        # "USE_TEMPORAL_ENSEMBLING":args.use_temporal_ensembling
         "FLAT_POLICY":str(launch_config["eval_args"]["flat_policy"]),
+        "FILTERING_METHOD":str(launch_config["eval_args"]["filtering_method"]),
     }
 
 
@@ -239,6 +227,18 @@ def launch(args):
     print()
     print()
 
+    sagemaker_job_tags = [
+        {
+            "Key": "tri.project",
+            "Value": "LBM:PJ-0109"
+        },
+        {
+            "Key": "tri.owner.email",
+            "Value": "kyle.hatch@tri.global"
+        }
+    ]
+
+
     estimator = TensorFlow(
         base_job_name=base_job_name,
         # entry_point=entry_point,
@@ -260,6 +260,7 @@ def launch(args):
         checkpoint_local_path=checkpoint_local_path,
         code_location=code_location,
         distribution=distribution,
+        tags=sagemaker_job_tags,
     )
 
     estimator.fit(inputs=training_inputs)
@@ -273,6 +274,87 @@ if __name__ == '__main__':
     launch(args)
 
 """
+./update_docker.sh
+./upload_docker.sh
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplit2/auggoaldiffgoaldelta20long.yaml
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplitatmlibero10/auggoaldiff.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplitatmlibero90/auggoaldiff.yaml
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplitatmliberogoal/auggoaldiff.yaml
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplitatmliberoobject/auggoaldiff.yaml
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplitatmliberospatial/auggoaldiff.yaml
+
+
+
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplit210shot/auggoaldiffhighlevelvf.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplit210shot/auggoaldiff.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/auggoaldiffhighlevelvf4samples.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/auggoaldiffhighlevelvf8samples.yaml
+
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/auggoaldiffhighlevelvfhinge.yaml
+
+
+./update_docker.sh
+./upload_docker.sh
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplit2/auggoaldiffhighlevelvf.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/auggoaldiffhighlevelvf.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/default2.yaml
+
+./update_docker.sh
+./upload_docker.sh
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplit2/default2.yaml
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/liberosplit2/auggoaldiff.yaml
+
+
+
+
+./update_docker.sh
+./upload_docker.sh
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/auggoaldiff20horizonwith15.yaml
+
+
+python3 -u sagemaker_launch.py \
+--launch_config eval_launch_files/calvin/auggoaldiff5horizon.yaml
+
+
+
 
 # debug 
 ./update_docker.sh

@@ -333,7 +333,7 @@ def delta_goals_with_generated(traj, *, goal_delta, frac_generated):
     return traj_truncated
 
 
-def delta_goals_with_generated_encode_decode(traj, *, goal_delta, frac_generated, frac_encode_decode, frac_noised_encode_decode):
+def delta_goals_with_generated_encode_decode(traj, *, goal_delta, frac_generated, frac_encode_decode, frac_noised_encode_decode, zero_goal):
     """
     Relabels with a uniform distribution over future states in the range [i +
     goal_delta[0], min{traj_len, i + goal_delta[1]}). Truncates trajectories to
@@ -393,6 +393,9 @@ def delta_goals_with_generated_encode_decode(traj, *, goal_delta, frac_generated
             traj_truncated["generated_goals"],
         )
 
+        if zero_goal:
+            all_generated_goals = tf.zeros_like(all_generated_goals) 
+
         idxs_of_encode_decode_goals = tf.random.uniform(shape=(tf.shape(traj_truncated["goals"]["encode_decode_image"])[0],), minval=0, maxval=tf.shape(traj_truncated["goals"]["encode_decode_image"])[1], dtype=tf.int32)
         all_encode_decode_goals = tf.nest.map_structure(
             lambda x: tf.gather(x, idxs_of_encode_decode_goals, axis=1, batch_dims=1),
@@ -450,13 +453,13 @@ def delta_goals_with_generated_encode_decode(traj, *, goal_delta, frac_generated
         # traj_truncated["curr_idxs"] = curr_idxs ### DEBUG
 
         traj_truncated["uses_generated_goal"] = tf.zeros_like(curr_idxs) ### DEBUG
-        traj_truncated["uses_generated_goal"] = tf.tensor_scatter_nd_update(traj_truncated["uses_generated_goal"], tf.expand_dims(curr_idxs_with_generated_goals, axis=-1), tf.ones_like(curr_idxs_with_generated_goals)) ### DEBUG
+        traj_truncated["uses_generated_goal"] = tf.tensor_scatter_nd_update(traj_truncated["uses_generated_goal"], tf.expand_dims(curr_idxs_with_generated_goals, axis=-1), tf.ones_like(curr_idxs_with_generated_goals)) 
 
         traj_truncated["uses_encode_decode_goal"] = tf.zeros_like(curr_idxs) ### DEBUG
-        traj_truncated["uses_encode_decode_goal"] = tf.tensor_scatter_nd_update(traj_truncated["uses_encode_decode_goal"], tf.expand_dims(curr_idxs_with_encode_decode_goals, axis=-1), tf.ones_like(curr_idxs_with_encode_decode_goals)) ### DEBUG
+        traj_truncated["uses_encode_decode_goal"] = tf.tensor_scatter_nd_update(traj_truncated["uses_encode_decode_goal"], tf.expand_dims(curr_idxs_with_encode_decode_goals, axis=-1), tf.ones_like(curr_idxs_with_encode_decode_goals)) 
 
         traj_truncated["uses_noised_encode_decode_goal"] = tf.zeros_like(curr_idxs) ### DEBUG
-        traj_truncated["uses_noised_encode_decode_goal"] = tf.tensor_scatter_nd_update(traj_truncated["uses_noised_encode_decode_goal"], tf.expand_dims(curr_idxs_with_noised_encode_decode_goals, axis=-1), tf.ones_like(curr_idxs_with_noised_encode_decode_goals)) ### DEBUG
+        traj_truncated["uses_noised_encode_decode_goal"] = tf.tensor_scatter_nd_update(traj_truncated["uses_noised_encode_decode_goal"], tf.expand_dims(curr_idxs_with_noised_encode_decode_goals, axis=-1), tf.ones_like(curr_idxs_with_noised_encode_decode_goals)) 
 
 
         # traj_truncated["idxs_of_generated_goals"] = idxs_of_generated_goals ### DEBUG

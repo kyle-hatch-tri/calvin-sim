@@ -1,0 +1,3 @@
+place_in_slider
+store the grasped block in the sliding cabinet
+success: False

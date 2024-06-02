@@ -263,6 +263,7 @@ class GCDiscriminatorAgent(flax.struct.PyTreeNode):
         return v
 
 
+
     @jax.jit
     def get_debug_metrics(self, batch, gripper_close_val=None, **kwargs):
 
@@ -338,7 +339,6 @@ class GCDiscriminatorAgent(flax.struct.PyTreeNode):
         generated_logits = masked_mean(v, generated_goal_mask)
         encode_decode_logits = masked_mean(v, encode_decode_mask)
         noised_encode_decode_logits = masked_mean(v, noised_encode_decode_mask)
-
 
         overall_pred = jax.nn.sigmoid(v).mean()
         real_pred = masked_mean(jax.nn.sigmoid(v), real_goal_mask)
