@@ -146,3 +146,8 @@ calvin_venv/*
 dataset/*
 
 experiments
+
+
+random_util_scripts/datasets/
+random_util_scripts/highlevel_vf_output/
+random_util_scripts/instruct_pix2pix_images/
